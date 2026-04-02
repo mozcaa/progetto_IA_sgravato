@@ -15,7 +15,7 @@ L'ambiente è rappresentato come una **matrice di celle**, dove la granularità 
 Il movimento dell'agente è vincolato a spostamenti tra celle adiacenti (N, S, E, W). La funzione di costo associata alle azioni di navigazione è così definita:
 
 * **Costo Base di Spostamento**: Il transito tra due celle adiacenti ha un costo base unitario pari a **1**.
-* **Penalità di Confine**: L'attraversamento di un confine tra due stati distinti comporta un onere aggiuntivo di **+1** sul costo totale dello spostamento.
+* **Penalità di Confine**: L'attraversamento di un confine tra due stati distinti comporta un onere aggiuntivo di **+1** sul costo totale dello spostamento (quindi un totale di 2).
 * **Penalità Territorio Nemico**: L'ingresso in uno stato ostile applica un malus aggiuntivo istantaneo al costo del tragitto. Tale malus è calcolato moltiplicando il livello di pericolosità del territorio nemico (da 1 a 9) per un parametro di calibrazione $X$ (da definire in fase di configurazione).
 
 ### Formalizzazione Matematica
