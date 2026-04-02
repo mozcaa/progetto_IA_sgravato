@@ -16,12 +16,13 @@ Il movimento dell'agente è vincolato a spostamenti tra celle adiacenti (N, S, E
 
 * **Costo Base di Spostamento**: Il transito tra due celle adiacenti ha un costo base unitario pari a **1**.
 * **Penalità di Confine**: L'attraversamento di un confine tra due stati distinti comporta un onere aggiuntivo di **+1** sul costo totale dello spostamento.
+* **Penalità Territorio Nemico**: L'ingresso in uno stato ostile applica un malus aggiuntivo istantaneo al costo del tragitto. Tale malus è calcolato moltiplicando il livello di pericolosità del territorio nemico (da 1 a 9) per un parametro di calibrazione $X$ (da definire in fase di configurazione).
 
 ### Formalizzazione Matematica
-Dato un percorso che attraversa $n$ celle e interseca $k$ confini di stato, il costo totale $C$ è espresso dalla formula:
-$$C = n + k$$
+Dato un percorso che attraversa $n$ celle, interseca $k$ confini di stato e prevede l'ingresso in $m$ stati nemici (ciascuno caratterizzato da un livello di pericolosità $L_i$), il costo totale $C$ è espresso dalla formula:
+$$C = n + k + \sum_{i=1}^{m} (L_i \cdot X)$$
 
-*Esempio*: Uno spostamento attraverso 6 celle all'interno dello stesso stato ha un costo di **6**. Se lo stesso spostamento prevede l'attraversamento di un confine, il costo totale diverrà **7**.
+*Esempio pratico*: Uno spostamento attraverso 6 celle all'interno dello stesso stato alleato ha un costo di **6**. Se lo stesso spostamento prevede l'attraversamento di un confine per entrare in uno stato nemico con livello di pericolosità 4, il calcolo del costo diverrà: 6 (costo celle) + 1 (costo confine) + $4 \cdot X$ (malus nemico). Il costo totale sarà quindi pari a **$7 + 4X$**.
 
 ## 3. Classificazione e Tipologia dei Territori
 
@@ -35,4 +36,4 @@ In fase di acquisizione, ogni cella viene analizzata e classificata per definirn
 | **X** | **Confine Naturale** | Ostacolo insormontabile (non attraversabile). |
 | **1 - 9** | **Territorio Nemico** | Rappresenta il grado di pericolosità crescente. |
 
-I valori numerici relativi alla pericolosità dei territori nemici possono essere integrati nella funzione di costo per permettere all'algoritmo di ricerca di valutare percorsi più sicuri, bilanciando la brevità del tragitto con l'esposizione al rischio.
+I valori numerici relativi alla pericolosità dei territori nemici sono direttamente integrati nella funzione di costo. Questo approccio parametrico (modulabile tramite la variabile $X$) permette all'algoritmo di ricerca di valutare percorsi più o meno prudenti, bilanciando in modo dinamico la brevità del tragitto con l'esposizione al rischio.
