@@ -29,14 +29,9 @@ def pixelate_map(input_path, output_path, grid_width):
         # Usa NEAREST per mappe a colori netti, così non crea colori intermedi sfumati
         # che rovinerebbero i confini degli stati/regioni.
         small_img = img.resize((grid_width, grid_height), resample=Image.Resampling.NEAREST)
-        
-        # 4. Ingrandisci l'immagine (Upscale) per renderla visibile
-        # Riportiamo l'immagine alle dimensioni originali usando NEAREST
-        # per mantenere i bordi dei pixel netti e "quadrati".
-        pixelated_img = small_img.resize((orig_width, orig_height), resample=Image.Resampling.NEAREST)
-        
-        # 5. Salva il risultato
-        pixelated_img.save(output_path)
+
+        # 4. Salva il risultato
+        small_img.save(output_path)
         print(f"Immagine pixelata salvata con successo in: {output_path}")
         
     except FileNotFoundError:
@@ -48,13 +43,14 @@ def pixelate_map(input_path, output_path, grid_width):
 # Esempio di utilizzo dello script
 # ==========================================
 if __name__ == "__main__":
-    # Sostituisci questi valori con i tuoi
-    percorso_immagine_originale = "mappa_italia.jpg"  # Inserisci il nome della tua foto
-    percorso_immagine_finale = "mappa_italia_pixelata.png"
+    # Sostituire questi valori con quelli di necessità
+    percorso_immagine_originale = "FotoMappa/Originale/mappaItalia1.png"  # Inserisci il nome della tua foto
+    percorso_immagine_finale = "FotoMappa/Pixellata/mappaItalia1_pixellata.png"
     
-    # Parametro in input: quanti "blocchi" di larghezza vuoi?
-    # Più il numero è basso, più l'immagine sarà sgranata.
-    parametro_base = 60 
+    # parametro_base indica di quante celle deve essere composta la base. L'altezza viene
+    # definita in base alla proporzione con la basa per mantenere l'aspect-ratio
+    # Più il numero è piccolo, più l'immagine sarà sgranata.
+    parametro_base = 200
     
     pixelate_map(
         input_path=percorso_immagine_originale,
