@@ -1,29 +1,38 @@
-# Analisi del Dominio: Formalizzazione del Movimento e dei Costi
+# Definizione del Dominio: Navigazione e Mappatura Territoriale
 
-## 1. Struttura della Griglia e Definizione di Stato
-L'ambiente operativo è modellato come una griglia rettangolare discreta, dove l'unità minima di spazio è rappresentata dalla cella.
-* **Composizione degli Stati**: Uno "stato" (o regione) è costituito da un insieme di più celle contigue.
-* **Risoluzione dei Confini**: La delimitazione dei confini tra i diversi stati viene determinata tramite un processo di "pixellazione", volto a definire l'appartenenza delle celle a una specifica regione in base alla dimensione della griglia impostata.
+Il presente progetto si pone l'obiettivo di modellare un sistema di navigazione per un agente operante in un ambiente discretizzato, caratterizzato da territori frazionati e costi di transito variabili.
 
-## 2. Funzione di Costo dello Spostamento
-L'agente (la testina colorante $T$) può muoversi tra celle attigue nelle quattro direzioni cardinali (N, S, E, W). Il costo associato a tali azioni non è puramente uniforme, ma dipende dalla transizione tra le regioni:
+## 1. Architettura della Mappa e Discretizzazione
 
-* **Costo Base della Cella**: Ogni cella all'interno della griglia ha un costo di percorrenza intrinseco pari a $1$ ($cost_{cella} = 1$).
-* **Penalità di Transizione di Stato**: Ogni cambiamento di stato, inteso come l'attraversamento di un confine tra due diverse regioni, comporta un incremento del costo di spostamento pari a $+1$.
+L'ambiente è rappresentato come una **matrice di celle**, dove la granularità della griglia determina la precisione della rappresentazione geografica:
 
-### Formalizzazione del Calcolo
-Dato un percorso composto da $n$ celle, il costo totale $C$ è espresso dalla formula:
+* **Rappresentazione degli Stati**: Uno stato (o regione) può coincidere con una singola cella o essere costituito da un cluster di più celle contigue per rappresentare estensioni territoriali maggiori.
+* **Segmentazione Cromatica**: Al fine di distinguere topologicamente le diverse regioni, ogni stato è caratterizzato da un colore differente rispetto a quelli adiacenti. Questo garantisce una separazione netta dei confini durante la fase di analisi dell'immagine.
+* **Processo di Pixellazione**: La definizione dei confini avviene attraverso una procedura di pixellazione che mappa l'input visivo sulla griglia di navigazione, definendo l'appartenenza di ogni coordinata $(x, y)$ a uno specifico stato.
+
+## 2. Logica di Movimento e Modello dei Costi
+
+Il movimento dell'agente è vincolato a spostamenti tra celle adiacenti (N, S, E, W). La funzione di costo associata alle azioni di navigazione è così definita:
+
+* **Costo Base di Spostamento**: Il transito tra due celle adiacenti ha un costo base unitario pari a **1**.
+* **Penalità di Confine**: L'attraversamento di un confine tra due stati distinti comporta un onere aggiuntivo di **+1** sul costo totale dello spostamento.
+
+### Formalizzazione Matematica
+Dato un percorso che attraversa $n$ celle e interseca $k$ confini di stato, il costo totale $C$ è espresso dalla formula:
 $$C = n + k$$
-Dove:
-* $n$ è il numero di celle percorse (costo base).
-* $k$ è il numero di confini di stato attraversati durante il movimento.
 
-**Esempi Applicativi:**
-1. **Movimento Intra-Stato**: Se l'agente si sposta attraverso $6$ celle appartenenti alla medesima regione, il costo totale sarà pari a $6$.
-2. **Movimento Inter-Stato**: Se l'agente percorre $6$ celle ma attraversa un confine di stato, il costo totale risulterà pari a $7$ (costo delle celle + penalità di confine).
+*Esempio*: Uno spostamento attraverso 6 celle all'interno dello stesso stato ha un costo di **6**. Se lo stesso spostamento prevede l'attraversamento di un confine, il costo totale diverrà **7**.
 
-## 3. Vincoli del Movimento
-In linea con i vincoli del dominio:
-* **$v_1$**: L'agente può compiere un solo passo alla volta.
-* **$v_2$**: Lo spostamento è consentito esclusivamente tra celle adiacenti.
-* **$v_3$**: Non è permesso all'agente di uscire dai confini della griglia definiti in fase di acquisizione.
+## 3. Classificazione e Tipologia dei Territori
+
+In fase di acquisizione, ogni cella viene analizzata e classificata per definirne le proprietà fisiche e tattiche. Invece di utilizzare nomi estesi, il sistema adotta una codifica alfanumerica:
+
+| Identificatore | Tipologia | Proprietà |
+| :--- | :--- | :--- |
+| **S** | **Start** | Punto di origine dell'agente. |
+| **G** | **Goal** | Obiettivo finale o destinazione del percorso. |
+| **A** | **Alleato** | Territorio amichevole con transito standard. |
+| **X** | **Confine Naturale** | Ostacolo insormontabile (non attraversabile). |
+| **1 - 9** | **Territorio Nemico** | Rappresenta il grado di pericolosità crescente. |
+
+I valori numerici relativi alla pericolosità dei territori nemici possono essere integrati nella funzione di costo per permettere all'algoritmo di ricerca di valutare percorsi più sicuri, bilanciando la brevità del tragitto con l'esposizione al rischio.
