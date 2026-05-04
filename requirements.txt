@@ -1,1 +1,4 @@
 Pillow
+numpy
+matplotlib
+tensorflow
