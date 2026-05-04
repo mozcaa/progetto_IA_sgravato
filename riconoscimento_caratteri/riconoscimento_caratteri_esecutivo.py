@@ -13,7 +13,7 @@ IMG_SIZE = 28
 model = keras.models.load_model("riconoscimentocaratteri.keras")
 
 # Percorso della tua immagine
-image_path = "6.png"   
+image_path = "ImmaginiTest/test6.png"   
 
 # Carica immagine e convertila in scala di grigi
 img = Image.open(image_path).convert("L")
