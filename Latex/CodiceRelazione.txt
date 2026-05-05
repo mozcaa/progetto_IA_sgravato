@@ -19,7 +19,7 @@
 \hypersetup{
     colorlinks=true,
     linkcolor=blue,
-    filecolor=magenta,
+    filecolor=magenta,      
     urlcolor=cyan,
     pdftitle={Relazione Progetto AI},
 }
@@ -31,20 +31,20 @@
 \begin{titlepage}
     \centering
     \vspace*{1cm}
-
+    
     {\Huge \textbf{Università degli Studi di Perugia}} \\
     \vspace{0.5cm}
     {\Large Dipartimento di Informatica / Ingegneria Informatica} \\
     \vspace{1.5cm}
-
+    
     {\Large \textbf{Corso di Intelligenza Artificiale}} \\
     \vspace{2cm}
-
+    
     {\huge \textbf{Analisi e Digitalizzazione di Mappe Geopolitiche Tramite Computer Vision e Deep Learning}} \\
     \vspace{0.5cm}
     {\large Anno Accademico 2025/2026}
     \vspace{2.5cm}
-
+    
     \begin{minipage}{0.4\textwidth}
         \begin{flushleft} \large
             \emph{Studenti:}\\
@@ -60,7 +60,7 @@
             Prof.ssa Valentina Poggiani
         \end{flushright}
     \end{minipage}
-
+    
     \vfill
     {\large Ultima modifica: 05/06/2026}
 \end{titlepage}
@@ -72,34 +72,34 @@
 
 % --- Sezione 1: Obiettivo del Progetto ---
 \section{Definizione del Dominio: Navigazione e Mappatura Territoriale}
-Il presente progetto si pone l'obiettivo di modellare un sistema di navigazione per un agente operante in un ambiente discretizzato, caratterizzato da territori frazionati e costi di transito variabili[cite: 2].
+Il presente progetto si pone l'obiettivo di modellare un sistema di navigazione per un agente operante in un ambiente discretizzato, caratterizzato da territori frazionati e costi di transito variabili.
 
 \subsection{Architettura della Mappa e Discretizzazione}
-L'ambiente è rappresentato come una matrice di celle, dove la granularità della griglia determina la precisione della rappresentazione geografica[cite: 2]:
+L'ambiente è rappresentato come una matrice di celle, dove la granularità della griglia determina la precisione della rappresentazione geografica:
 \begin{itemize}
-    \item \textbf{Rappresentazione degli Stati}: Uno stato (o regione) può coincidere con una singola cella o essere costituito da un cluster di più celle contigue per rappresentare estensioni territoriali maggiori[cite: 2].
-    \item \textbf{Segmentazione Cromatica}: Al fine di distinguere topologicamente le diverse regioni, ogni stato è caratterizzato da un colore differente rispetto a quelli adiacenti[cite: 2]. Questo garantisce una separazione netta dei confini durante la fase di analisi dell'immagine[cite: 2].
-    \item \textbf{Processo di Pixellazione}: La definizione dei confini avviene attraverso una procedura di pixellazione che mappa l'input visivo sulla griglia di navigazione, definendo l'appartenenza di ogni coordinata $(x, y)$ a uno specifico stato[cite: 2].
+    \item \textbf{Rappresentazione degli Stati}: Uno stato (o regione) può coincidere con una singola cella o essere costituito da un cluster di più celle contigue per rappresentare estensioni territoriali maggiori.
+    \item \textbf{Segmentazione Cromatica}: Al fine di distinguere topologicamente le diverse regioni, ogni stato è caratterizzato da un colore differente rispetto a quelli adiacenti. Questo garantisce una separazione netta dei confini durante la fase di analisi dell'immagine.
+    \item \textbf{Processo di Pixellazione}: La definizione dei confini avviene attraverso una procedura di pixellazione che mappa l'input visivo sulla griglia di navigazione, definendo l'appartenenza di ogni coordinata $(x, y)$ a uno specifico stato.
 \end{itemize}
 
 \subsection{Logica di Movimento e Modello dei Costi}
-Il movimento dell'agente è vincolato a spostamenti tra celle adiacenti lungo le direzioni cardinali (Nord, Sud, Est, Ovest)[cite: 2]. La funzione di costo associata alle azioni di navigazione è così definita[cite: 2]:
+Il movimento dell'agente è vincolato a spostamenti tra celle adiacenti lungo le direzioni cardinali (Nord, Sud, Est, Ovest). La funzione di costo associata alle azioni di navigazione è così definita:
 \begin{itemize}
-    \item \textbf{Costo Base di Spostamento}: Il transito tra due celle adiacenti ha un costo base unitario pari a 1[cite: 2].
-    \item \textbf{Penalità di Confine}: L'attraversamento di un confine tra due stati distinti comporta un onere aggiuntivo di +1 sul costo totale dello spostamento (risultando quindi in un costo totale pari a 2)[cite: 2].
-    \item \textbf{Penalità Territorio Nemico}: L'ingresso in uno stato ostile applica un malus aggiuntivo istantaneo al costo del tragitto[cite: 2]. Tale malus è calcolato moltiplicando il livello di pericolosità del territorio nemico (con valori compresi tra 1 e 9) per un parametro di calibrazione $X$ (da definire in fase di configurazione)[cite: 2].
+    \item \textbf{Costo Base di Spostamento}: Il transito tra due celle adiacenti ha un costo base unitario pari a 1.
+    \item \textbf{Penalità di Confine}: L'attraversamento di un confine tra due stati distinti comporta un onere aggiuntivo di +1 sul costo totale dello spostamento (risultando quindi in un costo totale pari a 2).
+    \item \textbf{Penalità Territorio Nemico}: L'ingresso in uno stato ostile applica un malus aggiuntivo istantaneo al costo del tragitto. Tale malus è calcolato moltiplicando il livello di pericolosità del territorio nemico (con valori compresi tra 1 e 9) per un parametro di calibrazione $X$ (da definire in fase di configurazione).
 \end{itemize}
 
 \subsubsection*{Formalizzazione Matematica}
-Dato un percorso che attraversa $n$ celle, interseca $k$ confini di stato e prevede l'ingresso in $m$ stati nemici (ciascuno caratterizzato da un livello di pericolosità $L_i$), il costo totale $C$ è espresso dalla seguente formula[cite: 2]:
+Dato un percorso che attraversa $n$ celle, interseca $k$ confini di stato e prevede l'ingresso in $m$ stati nemici (ciascuno caratterizzato da un livello di pericolosità $L_i$), il costo totale $C$ è espresso dalla seguente formula:
 \begin{equation}
 C = n + k + \sum_{i=1}^{m} (L_i \cdot X)
 \end{equation}
 
-\textit{Esempio pratico}: Uno spostamento attraverso 6 celle all'interno dello stesso stato alleato ha un costo pari a 6[cite: 2]. Se lo stesso spostamento prevede l'attraversamento di un confine per entrare in uno stato nemico con livello di pericolosità 4, il calcolo del costo diverrà: 6 (costo celle) + 1 (costo confine) + $4 \cdot X$ (malus nemico)[cite: 2]. Il costo totale sarà quindi pari a $7 + 4X$[cite: 2].
+\textit{Esempio pratico}: Uno spostamento attraverso 6 celle all'interno dello stesso stato alleato ha un costo pari a 6. Se lo stesso spostamento prevede l'attraversamento di un confine per entrare in uno stato nemico con livello di pericolosità 4, il calcolo del costo diverrà: 6 (costo celle) + 1 (costo confine) + $4 \cdot X$ (malus nemico). Il costo totale sarà quindi pari a $7 + 4X$.
 
 \subsection{Classificazione e Tipologia dei Territori}
-In fase di acquisizione, ogni cella viene analizzata e classificata per definirne le proprietà fisiche e tattiche[cite: 2]. Invece di utilizzare nomenclature estese, il sistema adotta una codifica alfanumerica ottimizzata[cite: 2]:
+In fase di acquisizione, ogni cella viene analizzata e classificata per definirne le proprietà fisiche e tattiche. Invece di utilizzare nomenclature estese, il sistema adotta una codifica alfanumerica ottimizzata:
 
 \begin{table}[h!]
     \centering
@@ -108,77 +108,77 @@ In fase di acquisizione, ogni cella viene analizzata e classificata per definirn
         \hline
         \textbf{Identificatore} & \textbf{Tipologia} & \textbf{Proprietà} \\
         \hline
-        \textbf{S} & Start & Punto di origine dell'agente[cite: 2]. \\
+        \textbf{S} & Start & Punto di origine dell'agente. \\
         \hline
-        \textbf{W} & Win & Obiettivo finale o destinazione del percorso[cite: 2]. \\
+        \textbf{W} & Win & Obiettivo finale o destinazione del percorso. \\
         \hline
-        \textbf{A} & Alleato & Territorio amichevole con transito standard[cite: 2]. \\
+        \textbf{A} & Alleato & Territorio amichevole con transito standard. \\
         \hline
-        \textbf{X} & Confine Naturale & Ostacolo insormontabile (non attraversabile)[cite: 2]. \\
+        \textbf{X} & Confine Naturale & Ostacolo insormontabile (non attraversabile). \\
         \hline
-        \textbf{1 - 9} & Territorio Nemico & Rappresenta il grado di pericolosità crescente[cite: 2]. \\
+        \textbf{1 - 9} & Territorio Nemico & Rappresenta il grado di pericolosità crescente. \\
         \hline
     \end{tabular}
-    \caption{Codifica alfanumerica e tipologia dei territori acquisiti[cite: 2]}
+    \caption{Codifica alfanumerica e tipologia dei territori acquisiti}
 \end{table}
 
-I valori numerici relativi alla pericolosità dei territori nemici sono direttamente integrati nella funzione di costo globale[cite: 2]. Questo approccio parametrico (modulabile tramite la variabile $X$) permette all'algoritmo di ricerca di valutare percorsi più o meno prudenti, bilanciando in modo dinamico la brevità del tragitto con l'esposizione al rischio[cite: 2].
+I valori numerici relativi alla pericolosità dei territori nemici sono direttamente integrati nella funzione di costo globale. Questo approccio parametrico (modulabile tramite la variabile $X$) permette all'algoritmo di ricerca di valutare percorsi più o meno prudenti, bilanciando in modo dinamico la brevità del tragitto con l'esposizione al rischio.
 
 % --- Sezione 2: Architettura (Precedente) ---
 \section{Architettura del Software e Scelte Progettuali}
-L'architettura del sistema è stata sviluppata seguendo un approccio modulare, ispirato ai principi dei microservizi, al fine di garantire scalabilità e facilità di debugging[cite: 1]. Inizialmente concepito come uno script monolitico, il progetto è stato rifattorizzato in tre moduli distinti per evitare conflitti tra le librerie di elaborazione delle immagini e quelle di apprendimento automatico[cite: 1].
+L'architettura del sistema è stata sviluppata seguendo un approccio modulare, ispirato ai principi dei microservizi, al fine di garantire scalabilità e facilità di debugging. Inizialmente concepito come uno script monolitico, il progetto è stato rifattorizzato in tre moduli distinti per evitare conflitti tra le librerie di elaborazione delle immagini e quelle di apprendimento automatico.
 
 La struttura finale si compone di:
 \begin{itemize}
-    \item \textbf{Hub Centrale (\texttt{hub\_master.py})}: Agisce come controller principale del flusso di esecuzione[cite: 1].
-    \item \textbf{Modulo Digitalizzatore (\texttt{modulo\_digitalizzatore.py})}: Specializzato nelle operazioni di pre-elaborazione e computer vision[cite: 1].
-    \item \textbf{Modulo ML (\texttt{modulo\_ml.py})}: Deputato al riconoscimento dei caratteri tramite reti neurali[cite: 1].
+    \item \textbf{Hub Centrale (\texttt{hub\_master.py})}: Agisce come controller principale del flusso di esecuzione.
+    \item \textbf{Modulo Digitalizzatore (\texttt{modulo\_digitalizzatore.py})}: Specializzato nelle operazioni di pre-elaborazione e computer vision.
+    \item \textbf{Modulo ML (\texttt{modulo\_ml.py})}: Deputato al riconoscimento dei caratteri tramite reti neurali.
 \end{itemize}
-Questa separazione delle responsabilità permette di isolare eventuali errori logici o di classificazione, garantendo che interventi sulla rete neurale non compromettano la gestione geometrica dei confini[cite: 1].
+Questa separazione delle responsabilità permette di isolare eventuali errori logici o di classificazione, garantendo che interventi sulla rete neurale non compromettano la gestione geometrica dei confini.
 
 % --- Sezione 3: Computer Vision ---
 \section{Il Modulo Digitalizzatore: Computer Vision e Pre-elaborazione}
-Il modulo \texttt{modulo\_digitalizzatore.py} ha il compito di trasformare un'acquisizione fotografica grezza, potenzialmente degradata da rumore ottico o condizioni di illuminazione non ideali, in una matrice binaria pulita[cite: 1].
+Il modulo \texttt{modulo\_digitalizzatore.py} ha il compito di trasformare un'acquisizione fotografica grezza, potenzialmente degradata da rumore ottico o condizioni di illuminazione non ideali, in una matrice binaria pulita.
 
 \subsection{Trattamento del Tratto e Rimozione dei Quadretti}
-Uno dei problemi principali affrontati è stata la presenza della griglia dei quadretti del foglio, il cui spessore era paragonabile a quello del tratto della penna[cite: 1]. Per preservare l'integrità dei confini durante la rimozione del rumore, è stata adottata la seguente pipeline[cite: 1]:
+Uno dei problemi principali affrontati è stata la presenza della griglia dei quadretti del foglio, il cui spessore era paragonabile a quello del tratto della penna. Per preservare l'integrità dei confini durante la rimozione del rumore, è stata adottata la seguente pipeline:
 \begin{enumerate}
-    \item \textbf{Erosione Morfologica}: Utilizzando la funzione \texttt{cv2.erode} con un kernel ridotto, è stato possibile espandere i pixel neri, ispessendo preventivamente il tratto della penna[cite: 1].
-    \item \textbf{Filtraggio Mediano}: È stato applicato un filtro \texttt{cv2.medianBlur} con intensità 11[cite: 1]. Tale operazione sfrutta la media dei pixel adiacenti per assorbire elementi sottili (i quadretti) nello sfondo, mantenendo intatti i confini precedentemente ispessiti[cite: 1].
+    \item \textbf{Erosione Morfologica}: Utilizzando la funzione \texttt{cv2.erode} con un kernel ridotto, è stato possibile espandere i pixel neri, ispessendo preventivamente il tratto della penna.
+    \item \textbf{Filtraggio Mediano}: È stato applicato un filtro \texttt{cv2.medianBlur} con intensità 11. Tale operazione sfrutta la media dei pixel adiacenti per assorbire elementi sottili (i quadretti) nello sfondo, mantenendo intatti i confini precedentemente ispessiti.
 \end{enumerate}
 
 \subsection{Gestione dell'Illuminazione}
-Per ovviare al problema delle ombre proiettate durante l'acquisizione, è stato implementato un algoritmo di \textbf{Soglia Adattiva} (\texttt{cv2.adaptiveThreshold})[cite: 1]. Calcolando il contrasto su finestre locali di $31 \times 31$ pixel, il sistema è in grado di distinguere accuratamente tra variazioni cromatiche dovute a ombreggiature e l'effettivo tratto grafico[cite: 1].
+Per ovviare al problema delle ombre proiettate durante l'acquisizione, è stato implementato un algoritmo di \textbf{Soglia Adattiva} (\texttt{cv2.adaptiveThreshold}). Calcolando il contrasto su finestre locali di $31 \times 31$ pixel, il sistema è in grado di distinguere accuratamente tra variazioni cromatiche dovute a ombreggiature e l'effettivo tratto grafico.
 
-È importante sottolineare la rimozione della funzione di pulizia globale (precedentemente denominata "Vacuum Cleaner")[cite: 1]. Sebbene efficace nel rimuovere artefatti esterni, tale funzione avrebbe eliminato anche i caratteri interni agli stati, fondamentali per l'etichettatura semantica della mappa[cite: 1].
+È importante sottolineare la rimozione della funzione di pulizia globale (precedentemente denominata "Vacuum Cleaner"). Sebbene efficace nel rimuovere artefatti esterni, tale funzione avrebbe eliminato anche i caratteri interni agli stati, fondamentali per l'etichettatura semantica della mappa.
 
 % --- Sezione 4: Machine Learning ---
 \section{Il Modulo ML: Riconoscimento dei Caratteri}
-Il modulo \texttt{modulo\_ml.py} funge da wrapper per una Rete Neurale Convoluzionale (CNN)[cite: 1]. Per ottimizzare le prestazioni, il modello viene caricato in memoria esclusivamente all'avvio del programma[cite: 1].
+Il modulo \texttt{modulo\_ml.py} funge da wrapper per una Rete Neurale Convoluzionale (CNN). Per ottimizzare le prestazioni, il modello viene caricato in memoria esclusivamente all'avvio del programma.
 
 \subsection{Standardizzazione dell'Input}
-La rete è stata addestrata sul dataset \textbf{EMNIST}, che impone input di dimensioni $28 \times 28$ pixel[cite: 1]. Il processo di normalizzazione dei ritagli forniti dall'Hub avviene secondo i seguenti criteri[cite: 1]:
+La rete è stata addestrata sul dataset \textbf{EMNIST}, che impone input di dimensioni $28 \times 28$ pixel. Il processo di normalizzazione dei ritagli forniti dall'Hub avviene secondo i seguenti criteri:
 \begin{itemize}
-    \item Ridimensionamento del ritaglio mantenendo il rapporto d'aspetto, con lato massimo fissato a 20 pixel[cite: 1].
-    \item Posizionamento centrale dell'immagine all'interno di una tela nera di $28 \times 28$ pixel[cite: 1].
+    \item Ridimensionamento del ritaglio mantenendo il rapporto d'aspetto, con lato massimo fissato a 20 pixel.
+    \item Posizionamento centrale dell'immagine all'interno di una tela nera di $28 \times 28$ pixel.
 \end{itemize}
-Grazie alla precisione dell'estrazione geometrica effettuata dall'Hub, è stato possibile eliminare l'uso di librerie esterne come \texttt{scipy} per la ricerca delle forme, riducendo significativamente il carico computazionale[cite: 1].
+Grazie alla precisione dell'estrazione geometrica effettuata dall'Hub, è stato possibile eliminare l'uso di librerie esterne come \texttt{scipy} per la ricerca delle forme, riducendo significativamente il carico computazionale.
 
 % --- Sezione 5: Hub Master ---
 \section{L'Hub Master: Integrazione e Logica di Sistema}
-L'Hub Master coordina l'interazione tra i moduli e risolve le criticità topologiche e algoritmiche emerse durante lo sviluppo[cite: 1].
+L'Hub Master coordina l'interazione tra i moduli e risolve le criticità topologiche e algoritmiche emerse durante lo sviluppo.
 
 \subsection{Classificazione tramite Analisi delle Aree}
-Per mitigare l'esplosione di falsi positivi derivanti dai residui della digitalizzazione, è stata introdotta una classificazione euristica basata sulla funzione \texttt{connectedComponents}[cite: 1]. Gli elementi vengono filtrati in base all'area (in pixel)[cite: 1]:
+Per mitigare l'esplosione di falsi positivi derivanti dai residui della digitalizzazione, è stata introdotta una classificazione euristica basata sulla funzione \texttt{connectedComponents}. Gli elementi vengono filtrati in base all'area (in pixel):
 \begin{itemize}
-    \item \textbf{Area < 400}: Classificata come rumore o "polvere" e scartata[cite: 1].
-    \item \textbf{400 < Area < 15.000}: Identificata come potenziale carattere alfanumerico e inviata al modulo ML[cite: 1].
-    \item \textbf{Area > 15.000}: Identificata come confine geografico[cite: 1].
+    \item \textbf{Area < 400}: Classificata come rumore o "polvere" e scartata.
+    \item \textbf{400 < Area < 15.000}: Identificata come potenziale carattere alfanumerico e inviata al modulo ML.
+    \item \textbf{Area > 15.000}: Identificata come confine geografico.
 \end{itemize}
 
 \subsection{Topologia degli Stati e Colorazione}
-Un problema critico è stato l'errata interpretazione dei confini interni utilizzando la funzione \texttt{cv2.RETR\_EXTERNAL}, che portava alla rilevazione del solo perimetro esterno[cite: 1]. La soluzione adottata prevede l'inversione dello spazio di ricerca: l'algoritmo identifica gli spazi bianchi vuoti come regioni isolate (stati) anziché concentrarsi sulle linee nere[cite: 1].
+Un problema critico è stato l'errata interpretazione dei confini interni utilizzando la funzione \texttt{cv2.RETR\_EXTERNAL}, che portava alla rilevazione del solo perimetro esterno. La soluzione adottata prevede l'inversione dello spazio di ricerca: l'algoritmo identifica gli spazi bianchi vuoti come regioni isolate (stati) anziché concentrarsi sulle linee nere.
 
-Attraverso l'uso di identificativi univoci (ID) e dell'operatore modulo applicato a una palette di colori, il sistema assegna colori distinti a nazioni adiacenti[cite: 1]. Infine, l'associazione tra etichette testuali e regioni geometriche è garantita dal test \textbf{Point in Polygon} (\texttt{cv2.pointPolygonTest}), che verifica l'appartenenza delle coordinate della lettera al poligono dello stato corrispondente[cite: 1].
+Attraverso l'uso di identificativi univoci (ID) e dell'operatore modulo applicato a una palette di colori, il sistema assegna colori distinti a nazioni adiacenti. Infine, l'associazione tra etichette testuali e regioni geometriche è garantita dal test \textbf{Point in Polygon} (\texttt{cv2.pointPolygonTest}), che verifica l'appartenenza delle coordinate della lettera al poligono dello stato corrispondente.
 
 \end{document}
