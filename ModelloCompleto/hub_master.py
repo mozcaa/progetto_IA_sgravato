@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import modulo_digitalizzatore
 import modulo_ml
 
-DIMENSIONE_FINALE = 400
+DIMENSIONE_FINALE = 2000
 
 AREA_RUMORE = 400
 AREA_CONFINE = 15000
