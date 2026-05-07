@@ -125,7 +125,7 @@ def avvia_hub(image_path):
     return img_color, visualizzazione, matrice_3d
 
 if __name__ == "__main__":
-    nome_foto = "mappa.jpg"  # Controlla sempre che il nome combaci!
+    nome_foto = "mappe/mappa.jpg"  # Controlla sempre che il nome combaci!
 
     img_originale, img_matrice, mat_3d = avvia_hub(nome_foto)
 
