@@ -31,7 +31,7 @@ In fase di acquisizione, ogni cella viene analizzata e classificata per definirn
 | Identificatore | Tipologia | Proprietà |
 | :--- | :--- | :--- |
 | **S** | **Start** | Punto di origine dell'agente. |
-| **G** | **Goal** | Obiettivo finale o destinazione del percorso. |
+| **W** | **Win** | Obiettivo finale o destinazione del percorso. |
 | **A** | **Alleato** | Territorio amichevole con transito standard. |
 | **X** | **Confine Naturale** | Ostacolo insormontabile (non attraversabile). |
 | **1 - 9** | **Territorio Nemico** | Rappresenta il grado di pericolosità crescente. |
