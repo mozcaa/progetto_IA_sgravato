@@ -153,12 +153,12 @@ def avvia_hub(image_path):
     print("- Salvato 'step3_matrice_colorata.png'")
     print("--- ELABORAZIONE COMPLETATA ---")
 
-    return img_color, visualizzazione, matrice_3d
+    return img_color, visualizzazione, matrice_3d, start_scalato, goal_scalato
 
 if __name__ == "__main__":
     nome_foto = "mappe/mappa.jpg"  # Controlla sempre che il nome combaci!
 
-    img_originale, img_matrice, mat_3d = avvia_hub(nome_foto)
+    img_originale, img_matrice, mat_3d, start, goal = avvia_hub(nome_foto)
     
     # ATTIVAZIONE PATHFINDING E RAPPRESENTAZIONE PERCORSO SU MAPPA
     if start and goal:
