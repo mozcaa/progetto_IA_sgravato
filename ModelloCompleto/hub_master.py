@@ -4,8 +4,9 @@ import matplotlib.pyplot as plt
 
 import modulo_digitalizzatore
 import modulo_ml
+import pathfinding
 
-DIMENSIONE_FINALE = 2000
+DIMENSIONE_FINALE = 800
 
 AREA_RUMORE = 400
 AREA_CONFINE = 15000
@@ -118,6 +119,36 @@ def avvia_hub(image_path):
                     matrice_3d[y, x, 1] = "VUOTO"
                     visualizzazione[y, x] = [255, 255, 255]
 
+    # --- SCALATURA E RICERCA START/GOAL ---
+    
+    # 1. Calcoliamo di quanto abbiamo ingrandito la mappa, quindi le scale che ci servono
+    altezza_originale, larghezza_originale = img_binaria.shape
+    scala_x = DIMENSIONE_FINALE / larghezza_originale
+    scala_y = DIMENSIONE_FINALE / altezza_originale
+
+    start_scalato = None
+    goal_scalato = None
+
+    # 2. Scorriamo i caratteri trovati, cerchiamo S e W
+    for char in lista_caratteri:
+        cx_orig, cy_orig = char['centro']
+        
+        if char['label'] == 'S':
+            start_scalato = (int(cx_orig * scala_x), int(cy_orig * scala_y)) #trovata la S salvo le coordinate scalate del suo baricentro
+        elif char['label'] == 'W':
+            goal_scalato = (int(cx_orig * scala_x), int(cy_orig * scala_y)) #trovata la W salvo le coordinate scalate del suo baricentro
+
+    if not start_scalato or not goal_scalato:
+        print("ATTENZIONE: Start (S) o Goal (W) non trovati!")
+    
+    if start_scalato: #metto un punto verde sulla mappa colorata sulla posizione di S
+        # cv2.circle(immagine, (x, y), raggio, colore_rgb, spessore)
+        # Lo spessore -1 riempie completamente il cerchio
+        cv2.circle(visualizzazione, start_scalato, 3, (0, 255, 0), -1) 
+
+    if goal_scalato: #metto un punto rosso sulla mappa colorata sulla posizione di W
+        cv2.circle(visualizzazione, goal_scalato, 3, (255, 0, 0), -1)
+
     cv2.imwrite("step3_matrice_colorata.png", cv2.cvtColor(visualizzazione, cv2.COLOR_RGB2BGR))
     print("- Salvato 'step3_matrice_colorata.png'")
     print("--- ELABORAZIONE COMPLETATA ---")
@@ -128,7 +159,24 @@ if __name__ == "__main__":
     nome_foto = "mappe/mappa.jpg"  # Controlla sempre che il nome combaci!
 
     img_originale, img_matrice, mat_3d = avvia_hub(nome_foto)
-
+    
+    # ATTIVAZIONE PATHFINDING E RAPPRESENTAZIONE PERCORSO SU MAPPA
+    if start and goal:
+        # Passiamo la matrice e i punti scalati al file separato
+        percorso_ucs, percorso_astar = pathfinding.esegui_confronto(mat_3d, start, goal)
+        
+        # DISEGNARE IL PERCORSO SULLA MAPPA
+        # Se A* ha trovato un percorso, coloriamo i pixel del percorso di rosso sulla mappa finale
+        if percorso_astar:
+            for x, y in percorso_astar:
+                # Coloriamo il pixel di rosso [Rosso, Verde, Blu]
+                img_matrice[y, x] = [255, 0, 0]
+        # Se UCS ha trovato un percorso, coloriamo i pixel del percorso di verde sulla mappa finale
+        if percorso_ucs:
+            for x, y in percorso_ucs:
+                # Coloriamo il pixel di verde [Rosso, Verde, Blu]
+                img_matrice[y, x] = [0, 255, 0]
+                
     fig, assi = plt.subplots(1, 2, figsize=(12, 6))
     assi[0].imshow(cv2.cvtColor(img_originale, cv2.COLOR_BGR2RGB))
     assi[0].set_title("1. Mappa Analizzata", fontsize=14)
