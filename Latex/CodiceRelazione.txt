@@ -58,7 +58,7 @@
             \emph{Studenti:}\\
             \textbf{Romeo Miscio} 364672\\
             \textbf{Tommaso Moschini}\\
-            \textbf{Federico Tabuani} 371633
+            \textbf{Federico Tabuani}
         \end{flushleft}
     \end{minipage}
     \hfill
