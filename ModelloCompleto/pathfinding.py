@@ -1,6 +1,6 @@
 import time
 import math
-from aima import Problem, uniform_cost_search, astar_search 
+from aima import Problem, uniform_cost_search, astar_search
 
 class MappaProblem(Problem):
     def __init__(self, start, goal, matrice_3d):
