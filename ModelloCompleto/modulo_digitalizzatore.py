@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 # I tuoi parametri fedeli al codice originale
-MEDIAN_BLUR = 13
+MEDIAN_BLUR = 15
 ADAPTIVE_THRESH = 10
 ITERAZIONI_DILATAZIONE = 1
 
