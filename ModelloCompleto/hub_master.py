@@ -163,7 +163,7 @@ if __name__ == "__main__":
     # ATTIVAZIONE PATHFINDING E RAPPRESENTAZIONE PERCORSO SU MAPPA
     if start and goal:
         # Passiamo la matrice e i punti scalati al file separato
-        percorso_ucs, percorso_astar = pathfinding.esegui_confronto(mat_3d, start, goal)
+        percorso_ucs, percorso_astar, percorso_greedy = pathfinding.esegui_confronto(mat_3d, start, goal)
         
         # DISEGNARE IL PERCORSO SULLA MAPPA
         # Se A* ha trovato un percorso, coloriamo i pixel del percorso di rosso sulla mappa finale
@@ -176,6 +176,11 @@ if __name__ == "__main__":
             for x, y in percorso_ucs:
                 # Coloriamo il pixel di verde [Rosso, Verde, Blu]
                 img_matrice[y, x] = [0, 255, 0]
+        # Se Greedy ha trovato un percorso, coloriamo i pixel del percorso di blu sulla mappa finale
+        if percorso_greedy:
+            for x, y in percorso_greedy:
+                # Coloriamo il pixel di blu [Rosso, Verde, Blu]
+                img_matrice[y, x] = [0, 0, 255]
                 
     fig, assi = plt.subplots(1, 2, figsize=(12, 6))
     assi[0].imshow(cv2.cvtColor(img_originale, cv2.COLOR_BGR2RGB))
