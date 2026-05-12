@@ -1,6 +1,6 @@
 import time
 import math
-from aima import Problem, uniform_cost_search, astar_search
+from aima import Problem, uniform_cost_search, astar_search, greedy_best_first_graph_search 
 
 class MappaProblem(Problem):
     def __init__(self, start, goal, matrice_3d):
@@ -67,8 +67,8 @@ class MappaProblem(Problem):
             costo_aggiuntivo = int(valore_pixel) # Es. se è "4", il costo è 4
         elif valore_pixel == "X":
             costo_aggiuntivo = 999999 # Costo altissimo (ostacolo)
-        # elif valore_pixel == "CONFINE":
-        #     costo_aggiuntivo = 10
+        elif valore_pixel == "CONFINE":
+            costo_aggiuntivo = 10
         # Puoi aggiungere altre regole per "A", "VUOTO", ecc.
             
         return c + costo_aggiuntivo
@@ -123,5 +123,24 @@ def esegui_confronto(matrice_3d, start_scalato, goal_scalato):
     else:
         print("A* fallito: percorso non trovato.")
         percorso_astar = None #se il percorso non viene trovato, così return finale non si bugga
+    
+    problema.nodi_esplorati = 0 #azzero contatore nodi
 
-    return percorso_ucs, percorso_astar
+    # 3. Ricerca Informata pazza (Greedy best first search)
+    print("\nAvvio Ricerca Informata (Greedy best first search)...")
+    start_time = time.time()
+    nodo_greedy = greedy_best_first_graph_search(problema, problema.h) #qua al contrario di a star (dove se non la specifichi la prende di default) va specificata l'euristica
+    tempo_greedy = time.time() - start_time
+    numero_nodi_greedy = problema.nodi_esplorati
+
+    if nodo_greedy:
+        print(f"Percorso Greedy trovato!")
+        print(f" -> Costo: {nodo_greedy.path_cost}")
+        print(f" -> Tempo: {tempo_greedy:.2f} secondi")
+        print(f" -> Nodi Esplorati: {numero_nodi_greedy:,}")
+        percorso_greedy = nodo_greedy.solution() # Restituisce la lista di (X, Y)
+    else:
+        print("Greedy best first search fallito: percorso non trovato.")
+        percorso_greedy = None #se il percorso non viene trovato, così return finale non si bugga
+
+    return percorso_ucs, percorso_astar, percorso_greedy
