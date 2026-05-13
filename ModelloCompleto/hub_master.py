@@ -129,19 +129,19 @@ def avvia_hub(image_path):
     start_scalato = None
     goal_scalato = None
 
-    # 2. Scorriamo i caratteri trovati, cerchiamo S e W
+    # 2. Scorriamo i caratteri trovati, cerchiamo C e W
     for char in lista_caratteri:
         cx_orig, cy_orig = char['centro']
         
-        if char['label'] == 'S':
-            start_scalato = (int(cx_orig * scala_x), int(cy_orig * scala_y)) #trovata la S salvo le coordinate scalate del suo baricentro
+        if char['label'] == 'C':
+            start_scalato = (int(cx_orig * scala_x), int(cy_orig * scala_y)) #trovata la C salvo le coordinate scalate del suo baricentro
         elif char['label'] == 'W':
             goal_scalato = (int(cx_orig * scala_x), int(cy_orig * scala_y)) #trovata la W salvo le coordinate scalate del suo baricentro
 
     if not start_scalato or not goal_scalato:
-        print("ATTENZIONE: Start (S) o Goal (W) non trovati!")
+        print("ATTENZIONE: Commence (C) o Win (W) non trovati!")
     
-    if start_scalato: #metto un punto verde sulla mappa colorata sulla posizione di S
+    if start_scalato: #metto un punto verde sulla mappa colorata sulla posizione di C
         # cv2.circle(immagine, (x, y), raggio, colore_rgb, spessore)
         # Lo spessore -1 riempie completamente il cerchio
         cv2.circle(visualizzazione, start_scalato, 3, (0, 255, 0), -1) 
@@ -156,31 +156,52 @@ def avvia_hub(image_path):
     return img_color, visualizzazione, matrice_3d, start_scalato, goal_scalato
 
 if __name__ == "__main__":
-    nome_foto = "mappe/mappa.jpg"  # Controlla sempre che il nome combaci!
+    nome_foto = "mappe/mappa13.jpg"  # Controlla sempre che il nome combaci!
 
     img_originale, img_matrice, mat_3d, start, goal = avvia_hub(nome_foto)
     
     # ATTIVAZIONE PATHFINDING E RAPPRESENTAZIONE PERCORSO SU MAPPA
+
+
     if start and goal:
+     
+        print("Colori percorsi:")
+        print("A* Manhattan = rosso")
+        print("A* Euclideo = giallo")
+        print("UCS = verde")
+        print("Greedy Manhattan = blu")
+        print("Greedy Euclideo = viola/magenta")
         # Passiamo la matrice e i punti scalati al file separato
-        percorso_ucs, percorso_astar, percorso_greedy = pathfinding.esegui_confronto(mat_3d, start, goal)
+        percorso_ucs, percorso_astar_manhattan, percorso_astar_euclideo, percorso_greedy_manhattan, percorso_greedy_euclideo = pathfinding.esegui_confronto(mat_3d, start, goal)
         
         # DISEGNARE IL PERCORSO SULLA MAPPA
-        # Se A* ha trovato un percorso, coloriamo i pixel del percorso di rosso sulla mappa finale
-        if percorso_astar:
-            for x, y in percorso_astar:
+        # Se A* Manhattan ha trovato un percorso, coloriamo i pixel del percorso di rosso sulla mappa finale
+        if percorso_astar_manhattan:
+            for x, y in percorso_astar_manhattan:
                 # Coloriamo il pixel di rosso [Rosso, Verde, Blu]
                 img_matrice[y, x] = [255, 0, 0]
+
+        if percorso_astar_euclideo:
+            for x, y in percorso_astar_euclideo:
+                # Coloriamo il pixel di giallo [Rosso, Verde, Blu]
+                img_matrice[y, x] = [255, 255, 0]
         # Se UCS ha trovato un percorso, coloriamo i pixel del percorso di verde sulla mappa finale
+
         if percorso_ucs:
             for x, y in percorso_ucs:
                 # Coloriamo il pixel di verde [Rosso, Verde, Blu]
                 img_matrice[y, x] = [0, 255, 0]
         # Se Greedy ha trovato un percorso, coloriamo i pixel del percorso di blu sulla mappa finale
-        if percorso_greedy:
-            for x, y in percorso_greedy:
+        
+        if percorso_greedy_manhattan:
+            for x, y in percorso_greedy_manhattan:
                 # Coloriamo il pixel di blu [Rosso, Verde, Blu]
                 img_matrice[y, x] = [0, 0, 255]
+
+        if percorso_greedy_euclideo:
+            for x, y in percorso_greedy_euclideo:
+                # Coloriamo il pixel di viola [Rosso, Verde, Blu]
+                img_matrice[y, x] = [255, 0, 255]
                 
     fig, assi = plt.subplots(1, 2, figsize=(12, 6))
     assi[0].imshow(cv2.cvtColor(img_originale, cv2.COLOR_BGR2RGB))
@@ -193,3 +214,4 @@ if __name__ == "__main__":
 
     plt.tight_layout()
     plt.show()
+ 
