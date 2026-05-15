@@ -27,24 +27,34 @@ class MappaProblem(Problem):
         x, y = state
         mosse_valide = []
 
-        # Movimento in 4 direzioni: su, giù, sinistra, destra
         direzioni = [
-            (x, y - 1),
-            (x, y + 1),
-            (x - 1, y),
-            (x + 1, y)
-        ]
-
-        for nx, ny in direzioni:
-            # Controllo che il vicino sia dentro la mappa
+             (0, -1), # Nord
+             (1, 0), # Est
+             (-1, 0), # Ovest
+             (0, 1) # Sud
+            ]
+        
+        for d in direzioni:
+            ny = y + d[1]
+            nx = x + d[0]
             if 0 <= nx < self.max_x and 0 <= ny < self.max_y:
-
-                valore_pixel = self.matrice[ny, nx, 1]
-
-                # Accetto solo celle che non siano ostacoli o vuoto/oceano
-                if valore_pixel != "X" and valore_pixel != "VUOTO":
-                    mosse_valide.append((nx, ny))
-
+                 valore_pixel = self.matrice[ny, nx, 1]
+                 if valore_pixel != "X" and valore_pixel != "VUOTO" and valore_pixel != "G":
+                     mosse_valide.append((nx, ny))
+                 elif valore_pixel == "G":
+                     schianto = False
+                     while(valore_pixel == "G"):
+                         ny += d[1]
+                         nx += d[0]
+                         if 0 <= nx < self.max_x and 0 <= ny < self.max_y: #controllo che non vada fuori dalla mappa
+                             valore_pixel = self.matrice[ny, nx, 1]
+                         else:
+                             schianto = True #altrimenti vuol dire che si è schiantato con un bordo della mappa
+                             break
+                     if valore_pixel == "X" or valore_pixel == "VUOTO" or schianto:
+                         mosse_valide.append((nx-d[0], ny-d[1])) #annullo l'ultima mossa se finisco in una x, vuoto o mi sono schiantato (impossibile perché prima ci sarebbe il confine)
+                     else:
+                         mosse_valide.append((nx, ny))
         return mosse_valide
 
     def result(self, state, action):

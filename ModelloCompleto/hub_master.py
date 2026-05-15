@@ -25,6 +25,8 @@ COLORI_PER_LABEL = {
     "W": [22, 230, 140], # Khaki
     "X": [173, 216, 230], # Azzurro
     "A": [223, 0, 100], # Qualcosa
+    "G": [142, 93, 240], # Qualcosa 2
+    "F": [93, 142, 240], # Qualcosa 3
     "VUOTO": [0, 0, 0]
 }
 
@@ -160,7 +162,7 @@ def avvia_hub(image_path):
 
 
 if __name__ == "__main__":
-    nome_foto = "mappe/mappa18.jpg"  # Controlla sempre che il nome combaci!
+    nome_foto = "mappe/mappa16.jpg"  # Controlla sempre che il nome combaci!
 
     img_originale, immagine_matrice_colorata, mat_3d, start, goal = avvia_hub(nome_foto)
     

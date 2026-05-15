@@ -14,7 +14,7 @@ np.random.seed(42)
 keras.utils.set_random_seed(42)
 
 # Classi che ci interessano davvero per il progetto
-TARGET_LABELS = ["C", "W", "A", "X", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
+TARGET_LABELS = ["A", "C", "G", "F", "W", "X", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 
 # Dizionari di conversione: label testuale <-> indice numerico
 label_to_index = {label: idx for idx, label in enumerate(TARGET_LABELS)}

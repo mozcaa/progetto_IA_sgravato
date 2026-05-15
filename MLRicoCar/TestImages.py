@@ -6,7 +6,7 @@ from PIL import Image, ImageOps
 from tensorflow import keras
 
 # 1. Configurazione iniziale
-TARGET_LABELS = ["S", "W", "A", "X", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
+TARGET_LABELS = ["A", "C", "G", "F", "W", "X", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 index_to_label = {idx: label for idx, label in enumerate(TARGET_LABELS)}
 IMG_SIZE = 28
 FOLDER_PATH = "ImmaginiTest"
