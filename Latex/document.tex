@@ -16,22 +16,43 @@
 \usepackage[dvipsnames]{xcolor}
 \usepackage{booktabs}
 
+% --- CONFIGURAZIONE DI LISTINGS PER IL CODICE ---
+\usepackage{listings}
+
+% --- PALETTE COLORI REALE DI VS CODE (DARK MODERN) ---
+\definecolor{vsSfondo}{RGB}{30, 30, 30}        
+\definecolor{vsTesto}{RGB}{212, 212, 212}      
+\definecolor{vsKeyword}{RGB}{224, 108, 117}    
+\definecolor{vsClassi}{RGB}{229, 192, 123}     
+\definecolor{vsModuli}{RGB}{97, 175, 239}       
+\definecolor{vsNumeri}{RGB}{110, 110, 110}      
+
+\lstdefinestyle{vscode-esatto}{
+	language=Python,
+	backgroundcolor=\color{vsSfondo},
+	basicstyle=\ttfamily\small\color{vsTesto},
+	keywordstyle=\color{vsKeyword}\bfseries,
+	emph={Path, Image, train_test_split, keras, layers},
+	emphstyle=\color{vsClassi},
+	emph={[2]PIL, np, plt},
+	emphstyle={[2]\color{vsModuli}},
+	numbers=left,
+	numberstyle=\tiny\color{vsNumeri},
+	numbersep=8pt,
+	breaklines=true,
+	breakindent=20pt,                % Se una riga va a capo, rientra elegantemente di 20pt
+	showstringspaces=false,
+	frame=none,
+	columns=flexible,                % Fissa la spaziatura delle lettere (LOOK VS CODE)
+	keepspaces=true,
+	xleftmargin=15pt,                % Allinea il box al margine sinistro della pagina
+	linewidth=14cm,                  % Larghezza ottimale del box
+}
+% ------------------------------------------------
+
 % Configurazione dei colori
 \definecolor{VerdeEstensione}{RGB}{24, 128, 56}
 % -------------------------
-
-% Configurazione snippet di codice
-\lstset{
-	language=Python,
-	basicstyle=\ttfamily\small,
-	keywordstyle=\color{blue},
-	commentstyle=\color{gray},
-	stringstyle=\color{red},
-	breaklines=true,
-	frame=single,
-	showstringspaces=false
-}
-% --------------------------------
 
 % Configurazione link cliccabili
 \hypersetup{
@@ -69,7 +90,7 @@
 		\begin{minipage}[t]{0.45\textwidth}
 			\begin{flushright} \large
 				\emph{Docente:} \\
-				\textbf{Prof.ssa Valentina Poggiani}
+				\textbf{Prof.ssa Valentina Poggioni}
 			\end{flushright}
 		\end{minipage}
 		
@@ -136,7 +157,7 @@
 		\item \textbf{Hub Centrale (\texttt{hub\_master.py})}: Agisce come controller principale del flusso di esecuzione, coordinando i moduli, isolando le isole di pixel, colorando gli stati e assemblando la matrice finale.
 	\end{itemize}
 	
-	\section{Sviluppo del Modello ML: Riconoscimento dei Caratteri}
+	\section{Il modulo ML: riconoscimento dei caratteri}
 	Il modulo \texttt{modulo\_ml.py} funge da wrapper per una Rete Neurale Convoluzionale (CNN). Per ottimizzare le prestazioni, il modello viene caricato in memoria esclusivamente all'avvio del programma.
 	
 	\subsection{Creazione del Modello: Dalla MLP alla CNN}
@@ -370,7 +391,253 @@
 	\end{lstlisting}
 	Poiché l'errore persisteva in alcuni casi limite, si è infine deciso di adottare un approccio più drastico utilizzando la libreria \textbf{SciPy} (già disponibile tramite scikit-learn) per rilevare ed isolare esclusivamente l'isola di pixel più grande associata al carattere, eliminando completamente i puntini di rumore. Questa modifica ha portato il ML a una precisione del 100\%.
 	
-	\section{Il Modulo Digitalizzatore: Computer Vision e Pre-elaborazione}
+	\subsection{Analisi delle librerie}
+	\begin{lstlisting}[style=vscode-esatto, caption={Importazione delle librerie per il Machine Learning}]
+from pathlib import Path
+import struct
+import gzip
+import numpy as np
+import matplotlib.pyplot as plt
+from PIL import Image
+from sklearn.model_selection import train_test_split
+import kagglehub
+from tensorflow import keras
+from tensorflow.keras import layers
+	\end{lstlisting}
+	
+	Al fine di implementare la pipeline di caricamento, preprocessing e addestramento del modello sul dataset EMNIST, è stato predisposto un ambiente software basato sul linguaggio Python. Di seguito viene analizzato nel dettaglio il ruolo di ciascun modulo e libreria importati nello script:
+	
+	\subsubsection{Gestione del File System e dei Formati Binari}
+	\begin{itemize}
+		\item \textbf{\texttt{pathlib} (\texttt{Path}):} Modulo della libreria standard di Python impiegato per la gestione dei percorsi di file e directory orientata agli oggetti. Rispetto alle tradizionali stringhe di testo, l'oggetto \texttt{Path} consente di manipolare i percorsi in modo indipendente dal sistema operativo ospite, facilitando in questo specifico flusso di lavoro la localizzazione ricorsiva dei file del dataset estratti localmente.
+		\item \textbf{\texttt{struct}:} Modulo fondamentale per l'interpretazione dei dati binari. Poiché i file del dataset EMNIST adottano il formato IDX (non leggibile come testo in chiaro), le funzioni di \texttt{struct} consentono di effettuare il parsing del flusso continuo di byte, convertendo stringhe binarie nei corrispettivi valori numerici interi (come il \textit{magic number} o le dimensioni delle matrici).
+		\item \textbf{\texttt{gzip}:} Libreria nativa utilizzata per la decompressione \textit{on-the-fly} dei file con estensione \texttt{.gz}. Il modulo permette l'apertura e la lettura dei flussi binari compressi mediante l'interfaccia \texttt{gzip.open()}, evitando la necessità di decomprimere preventivamente l'intero dataset sul disco fisso.
+	\end{itemize}
+	
+	\subsubsection{Manipolazione Dati e Visualizzazione}
+	\begin{itemize}
+		\item \textbf{\texttt{numpy} (\texttt{np}):} Libreria standard \textit{de facto} per il calcolo scientifico in Python. Consente di strutturare il payload dei file IDX in vettori e tensori multidimensionali (\texttt{ndarray}). Nel contesto del progetto, ogni immagine viene linearizzata o strutturata come una matrice numerica, consentendo di applicare efficienti operazioni algebriche di normalizzazione e preprocessing sull'intero dataset.
+		\item \textbf{\texttt{matplotlib.pyplot} (\texttt{plt}):} Strumento di plotting utilizzato per scopi di diagnostica e ispezione visiva. Permette di renderizzare a schermo le matrici di pixel dei campioni espressi in scala di grigi, verificando visivamente la corretta associazione tra le immagini scritte a mano e le rispettive etichette predittive.
+		\item \textbf{\texttt{PIL} (\texttt{Image}):} La \textit{Python Imaging Library} viene integrata nello script per supportare le operazioni di manipolazione geometrica avanzata sulle immagini (quali rotazioni, riflessioni o ridimensionamenti), qualora si rendano necessarie fasi di \textit{data augmentation} o di conversione di formato prima dell'input in rete.
+	\end{itemize}
+	
+	\subsubsection{Ingegneria delle Feature e Download del Dataset}
+	\begin{itemize}
+		\item \textbf{\texttt{kagglehub}:} API ufficiale utilizzata per automatizzare il download e il caching della versione più aggiornata del dataset EMNIST direttamente dai server di Kaggle, garantendo la riproducibilità dell'esperimento su macchine differenti.
+		\item \textbf{\texttt{sklearn.model\_selection} (\texttt{train\_test\_split}):} Modulo convenzionalmente deputato alla partizione casuale dei dati in sottoinsiemi di \textit{training}, \textit{validation} e \textit{testing}. Si specifica che, sebbene importata, la funzione non risulta strettamente necessaria in questa fase, in quanto il dataset EMNIST viene nativamente distribuito dal consorzio NIST già suddiviso in file di addestramento e di test indipendenti.
+	\end{itemize}
+	
+	\subsubsection{Architettura di Deep Learning (TensorFlow e Keras)}
+	\begin{itemize}
+		\item \textbf{\texttt{tensorflow.keras}:} Interfaccia ad alto livello utilizzata per l'astrazione, la compilazione e l'addestramento dei modelli di apprendimento profondo. Consente di definire il grafo computazionale della rete neurale in modo sequenziale o funzionale.
+		\item \textbf{\texttt{tensorflow.keras.layers}:} Modulo contenente i blocchi costruttivi fondamentali per l'architettura della rete. Nello specifico, l'algoritmo si avvale dei seguenti strati:
+		\begin{itemize}
+			\item \texttt{Input(\dots)}: Definisce la geometria del tensore di ingresso (corrispondente alla risoluzione del campione di input).
+			\item \texttt{Conv2D(\dots)}: Applica filtri convoluzionali bidimensionali per l'estrazione delle feature spaziali e dei pattern grafici (bordi, curve, intersezioni).
+			\item \texttt{MaxPooling2D(\dots)}: Effettua il sottocampionamento spaziale delle mappe delle feature, riducendo la dimensionalità computazionale e conferendo invarianza alle traslazioni.
+			\item \texttt{Flatten()}: Linearizza i tensori multidimensionali uscenti dagli strati convoluzionali in un singolo vettore unidimensionale.
+			\item \texttt{Dense(\dots)}: Strati completamente connessi (\textit{fully-connected}) incaricati di combinare le feature estratte per l'elaborazione del vettore di classificazione finale.
+			\item \texttt{Dropout(\dots)}: Tecnica di regolarizzazione che disattiva casualmente una percentuale di neuroni durante il training, finalizzata a prevenire fenomeni di \textit{overfitting}.
+		\end{itemize}
+	\end{itemize}
+	
+	\bigskip
+	\subsection{Analisi della Struttura dei File IDX}
+	
+	Le immagini non sono salvate con estensioni tradizionali, come \textcolor{VerdeEstensione}{.png} o \textcolor{VerdeEstensione}{.jpg}, bensì in formato \textbf{IDX}. Si tratta di un formato binario semplice, progettato specificamente per rappresentare vettori e matrici multidimensionali di numeri. La struttura di un file IDX prevede una parte iniziale, denominata \textbf{header}, contenente i metadati del file, seguita dai dati veri e propri (i pixel delle immagini o i valori delle etichette).
+	
+	La struttura generale di un file \textbf{IDX} si articola nel seguente modo:
+	\begin{itemize}
+		\item \textbf{Magic number} (4 byte)
+		\item \textbf{Dimensione 1} (4 byte)
+		\item \textbf{Dimensione 2} (4 byte)
+		\item \dots
+		\item \textbf{Dati} (array di elementi)
+	\end{itemize}
+	
+	Il \textit{magic number} è un identificativo posizionato all'inizio del file che specifica la tipologia di dati contenuti. Nei file IDX occupa esattamente i primi 4 byte, la cui anatomia interna è così ripartita:
+	\begin{itemize}
+		\item \textbf{Primi due byte:} Sono sempre impostati a zero ($00\ 00$).
+		\item \textbf{Terzo byte:} Indica il tipo di dato memorizzato (ad esempio, il codice $08$ corrisponde al tipo \textit{unsigned byte}).
+		\item \textbf{Quarto byte:} Indica il numero di dimensioni del vettore o della matrice.
+	\end{itemize}
+	
+	Per comprendere meglio, si consideri il codice esadecimale $00\ 00\ 08\ 03$. La sua scomposizione rivela:
+	\begin{itemize}
+		\item $00\ 00 \rightarrow$ I primi due byte fissi a zero.
+		\item $08 \rightarrow$ Tipo di dato \textit{unsigned byte} (valori interi compresi tra 0 e 255, ideali per i pixel in scala di grigi).
+		\item $03 \rightarrow$ Array a tre dimensioni (numero di immagini, righe, colonne).
+	\end{itemize}
+	
+	Se interpretato come un unico numero intero a 32 bit, questo valore esadecimale corrisponde al numero decimale \textbf{2051}, che rappresenta il \textit{magic number} standard per i file delle immagini nei dataset MNIST ed EMNIST. 
+	
+	Al contrario, i file contenenti le etichette (\textit{labels}) presentano il codice decimale \textbf{2049} ($00\ 00\ 08\ 01$): il formato dei dati rimane lo stesso ($08$), ma l'array è a una sola dimensione ($01$), in quanto si tratta di un semplice vettore lineare di valori.
+	
+	\bigskip
+	\subsubsection{Studio dei File del Dataset EMNIST}
+	
+	Per comprendere l'organizzazione pratica di questi file, si consideri come esempio il file di addestramento: 
+	$$\texttt{emnist-balanced-train-images-idx3-ubyte.gz}$$
+	
+	La nomenclatura del file non è casuale, ma ne descrive dettagliatamente il contenuto e la struttura secondo lo schema seguente:
+	\begin{itemize}
+		\item \textbf{\texttt{emnist-balanced}}: Identifica lo specifico \textit{split} (\textit{Balanced}) del dataset EMNIST.
+		\item \textbf{\texttt{train}}: Indica che i dati sono riservati alla fase di addestramento (\textit{training set}).
+		\item \textbf{\texttt{images}}: Specifica che il file contiene i pattern visivi (i pixel) e non le etichette.
+		\item \textbf{\texttt{idx3}}: Indica un formato IDX a tre dimensioni.
+		\item \textbf{\texttt{ubyte}}: Specifica che i dati sono memorizzati come \textit{unsigned byte} (valori interi compresi tra 0 e 255).
+		\item \textbf{\texttt{gz}}: Rappresenta l'estensione dell'archivio compresso tramite l'algoritmo \textit{Gzip}.
+	\end{itemize}
+	
+	L'indicazione più rilevante per il parsing dei dati è il suffisso \texttt{idx3-ubyte}. La dicitura \texttt{idx3} esplicita che i dati sono strutturati come un array tridimensionale. Nel contesto delle immagini, queste tre dimensioni corrispondono rispettivamente a:
+	\begin{enumerate}
+		\item Numero totale di immagini nel file.
+		\item Numero di righe di ciascuna immagine.
+		\item Numero di colonne di ciascuna immagine.
+	\end{enumerate}
+	
+	Nel caso specifico del file \textit{EMNIST Balanced train}, la struttura del tensore dei dati può essere espressa matematicamente come una matrice tridimensionale di dimensioni $[112\,800, 28, 28]$. Ciò significa che il file racchiude:
+	\begin{itemize}
+		\item $112\,800$ immagini complessive.
+		\item $28$ righe per singola immagine.
+		\item $28$ colonne per singola immagine.
+	\end{itemize}
+	
+	Di conseguenza, ogni singola immagine è composta da $28 \times 28 = 784$ pixel. Ciascun pixel è rappresentato da un valore numerico discreto nell'intervallo $[0, 255]$, dove lo $0$ corrisponde al nero totale, il $255$ al bianco puro e i valori intermedi definiscono le sfumature della scala di grigi.
+	
+	\bigskip
+	\subsubsection{Organizzazione Fisica nel Flusso Binario}
+	
+	Dal punto di vista fisico, all'interno del file binario non esistono elementi di separazione sintattica come indici, virgole, parentesi o metadati tra una struttura e l'altra. Il file si presenta come un flusso continuo di dati diviso rigorosamente in due sezioni: l'\textbf{header} e il \textbf{payload} (i dati effettivi).
+	
+	$$\text{[Header]} \underbrace{\text{[Pixel, Pixel, Pixel, Pixel, \dots]}}_{\text{Dati delle immagini}}$$
+	
+	Nel caso specifico del file delle immagini, l'header occupa esattamente i primi \textbf{16 byte}, poiché è composto da quattro numeri interi a 32 bit (ciascuno dei quali richiede 4 byte):
+	\begin{itemize}
+		\item \textbf{Magic number:} 4 byte (identificativo del formato).
+		\item \textbf{Numero di immagini:} 4 byte (quantità totale di campioni).
+		\item \textbf{Numero di righe:} 4 byte (risoluzione verticale).
+		\item \textbf{Numero di colonne:} 4 byte (risoluzione orizzontale).
+	\end{itemize}
+	
+	Superata la soglia dei primi 16 byte dedicati all'header, iniziano immediatamente i valori dei pixel. Il file non contiene marcatori espliciti per delimitare i confini tra le singole immagini; si sviluppa invece come un'unica sequenza unidimensionale di byte:
+	$$p_0, p_1, p_2, p_3, p_4, \dots, p_{88\,435\,199}$$
+	
+	La separazione e la corretta attribuzione dei pixel a ciascuna immagine avvengono per via logica in fase di parsing, sapendo a priori che ogni griglia è composta da $28 \times 28 = 784$ valori consecutivi. La segmentazione del flusso binario segue quindi questa logica sequenziale:
+	\begin{itemize}
+		\item \textbf{Pixel da $0$ a $783$:} Immagine 1
+		\item \textbf{Pixel da $784$ a $1567$:} Immagine 2
+		\item \textbf{Pixel da $1568$ a $2351$:} Immagine 3
+		\item \dots
+	\end{itemize}
+	
+	Questo principio evidenzia la caratteristica fondamentale del formato: all'interno del file le immagini non sono memorizzate come matrici bidimensionali, bensì come un unico vettore linearizzato (\textit{flattened}) di byte compresi nell'intervallo $[0, 255]$. La geometria bidimensionale originaria ($28 \times 28$) viene ricostruita via software solo in un secondo momento, sfruttando le informazioni sulle dimensioni precedentemente estratte dall'header.
+	
+	\bigskip
+	\subsubsection{Analisi del File delle Etichette (Labels)}
+	
+	In modo analogo a quanto visto per le immagini, il file contenente le etichette di addestramento è denominato:
+	$$\texttt{emnist-balanced-train-labels-idx1-ubyte.gz}$$
+	
+	La nomenclatura segue la medesima logica strutturale, descrivendo le proprietà intrinseche del set di dati:
+	\begin{itemize}
+		\item \textbf{\texttt{emnist-balanced}}: Identifica lo specifico \textit{split} (\textit{Balanced}) del dataset EMNIST.
+		\item \textbf{\texttt{train}}: Indica che le etichette appartengono al set di addestramento (\textit{training set}).
+		\item \textbf{\texttt{labels}}: Specifica che il file contiene le classi corrette (i target) associate alle immagini.
+		\item \textbf{\texttt{idx1}}: Indica un formato IDX a una sola dimensione.
+		\item \textbf{\texttt{ubyte}}: Specifica la codifica dei dati como \textit{unsigned byte} (valori interi compresi tra 0 e 255).
+		\item \textbf{\texttt{gz}}: Rappresenta l'estensione dell'archivio compresso tramite \textit{Gzip}.
+	\end{itemize}
+	
+	Il suffisso chiave in questo contesto è \texttt{idx1-ubyte}. La dicitura \texttt{idx1} esplicita che i dati non sono organizzati in matrici bidimensionali, bensì strutturati come un array monodimensionale. Il file si configura quindi come un semplice vettore lineare:
+	$$[L_0, L_1, L_2, L_3, \dots, L_{n-1}]$$
+	
+	Anche la struttura fisica di questo file prevede un \textbf{header} iniziale. Nel caso delle etichette, l'header occupa soltanto \textbf{8 byte}, poiché deve veicolare due soli numeri interi a 32 bit (da 4 byte ciascuno):
+	\begin{itemize}
+		\item \textbf{Magic number:} 4 byte (identificativo del formato).
+		\item \textbf{Numero di etichette:} 4 byte (quantità totale di campioni).
+	\end{itemize}
+	
+	Subito dopo questa sezione di 8 byte ha inizio il flusso dei dati effettivi. La disposizione fisica del file binario si articola quindi secondo lo schema seguente:
+	$$\text{[Magic number]} \ \text{[Numero label]} \underbrace{\text{[Label, Label, Label, Label, \dots]}}_{\text{Dati delle etichette}}$$
+	
+	Nel caso specifico del file \textit{EMNIST Balanced training}, i metadati contenuti nell'header assumono i seguenti valori:
+	\begin{itemize}
+		\item \textbf{Magic number:} \textbf{2049} ($00\ 00\ 08\ 01$ in esadecimale, che denota il tipo \textit{unsigned byte} mappato su un array monodimensionale).
+		\item \textbf{Numero di etichette:} \textbf{112\,800} (coerente con il numero totale di immagini presenti nel rispettivo file di payload).
+	\end{itemize}
+	
+	Al superamento dei primi 8 byte dell'header, il file presenta una sequenza continua di $112\,800$ singoli byte. Ciascun byte rappresenta la classe di appartenenza (il valore target) della rispettiva immagine, creando una corrispondenza biunivoca perfetta basata esclusivamente sull'indice di posizione: l'etichetta in posizione $i$-esima nel file delle label identificherà la classe dell'immagine ricostruita in posizione $i$-esima nel file delle immagini.
+	
+	\bigskip
+	\subsubsection{Corrispondenza Posizionale e Mapping Software}
+	
+	I file delle immagini e delle etichette non contengono puntatori interni o ID per legarsi tra loro; il loro accoppiamento avviene esclusivamente per \textbf{corrispondenza posizionale (o per indice)}. 
+	
+	Ciò implica che la struttura logica del dataset si basa sul perfetto allineamento sequenziale dei due flussi di dati:
+	\begin{align*}
+		\text{Immagine } 0 &\longrightarrow \text{Label } 0 \\
+		\text{Immagine } 1 &\longrightarrow \text{Label } 1 \\
+		\text{Immagine } 2 &\longrightarrow \text{Label } 2 \\
+		&\ \ \vdots
+	\end{align*}
+	
+	Di conseguenza, la prima immagine estratta dal file delle immagini ha come risposta corretta (\textit{ground truth}) la prima etichetta estratta dal file delle etichette.
+	
+	Mentre a livello hardware (nei file grezzi) i dati si presentano come un vettore continuo di pixel e un vettore continuo di singoli byte — in cui a ogni blocco di 784 pixel corrisponde una singola etichetta —, in fase di sviluppo software questa struttura viene rimodellata. Attraverso il codice di preprocessing, i dati vengono organizzati in due array paralleli, convenzionalmente denominati $X_{\text{train}}$ (le caratteristiche o \textit{features}) e $y_{\text{train}}$ (i target o \textit{labels}), stabilendo una corrispondenza biunivoca uno-a-uno:
+	\begin{itemize}
+		\item $\texttt{X\_train[0]} \rightarrow$ Matrice $28 \times 28$ della prima immagine.
+		\item $\texttt{y\_train[0]} \rightarrow$ Classe numerica corretta della prima immagine.
+		\vspace{0.1cm}
+		\item $\texttt{X\_train[1]} \rightarrow$ Matrice $28 \times 28$ della seconda immagine.
+		\item $\texttt{y\_train[1]} \rightarrow$ Classe numerica corretta della seconda immagine.
+		\vspace{0.1cm}
+		\item $\texttt{X\_train[2]} \rightarrow$ Matrice $28 \times 28$ della terza immagine.
+		\item $\texttt{y\_train[2]} \rightarrow$ Classe numerica corretta della terza immagine.
+	\end{itemize}
+	
+	Il mantenimento di questa rigorosa corrispondenza per indice è una condizione fondamentale e imprescindibile per la fase di addestramento: se l'ordine dei vettori venisse alterato anche solo di una posizione, il modello riceverebbe associazioni errate (\textit{mismatch}), compromettendo del tutto la capacità dell'algoritmo di generalizzare e apprendere correttamente la relazione tra i pattern visivi e le rispettive classi.
+	
+	\bigskip
+	\subsubsection{Decodifica dei Target e File di Mapping}
+	
+	È importante sottolineare che un'etichetta (\textit{label}) non è memorizzata direttamente sotto forma di carattere testuale (como "A" o "C"). All'interno del file binario, i target sono rappresentati esclusivamente da \textbf{numeri interi}, i quali fungono da indici interni per le classi del dataset EMNIST.
+	
+	Ad esempio, un'etichetta può assumere valori discreti come:
+	$$\texttt{label} = 10 \quad \text{oppure} \quad \texttt{label} = 35$$
+	
+	Preso singolarmente, questo valore numerico non esplicita in modo immediato il carattere grafico corrispondente. Per associare univocamente l'indice numerico alla rispettiva entità alfanumerica, è necessario consultare un file di dizionario aggiuntivo, denominato \textbf{file di mapping} (\textit{mapping file}).
+	
+	A differenza dei file precedentemente analizzati, il file di configurazione:
+	$$\texttt{emnist-balanced-mapping.txt}$$
+	non adotta il formato binario IDX, bensì si presenta come un comune file di testo (\textit{plain text}). La sua funzione è puramente relazionale: funge da tabella di raccordo per convertire le etichette numeriche del dataset nei rispettivi caratteri alfanumerici reali.
+	
+	L'organizzazione interna del file prevede che ogni riga sia composta da una coppia di valori numerici separati da uno spazio:
+	$$\texttt{[indice\_classe]} \quad \texttt{[codice\_ASCII]}$$
+	
+	Il primo valore rappresenta l'indice della classe associato internamente da EMNIST, mentre il secondo valore esprime il corrispettivo punto di codifica nello standard ASCII. 
+	
+	Ad esempio, l'estrazione di una riga come la seguente:
+	$$\texttt{10} \quad \texttt{65}$$
+	indica che alla classe EMNIST $\texttt{10}$ corrisponde il codice ASCII $\texttt{65}$. Nella codifica dei caratteri, il valore decimale $65$ mappa univocamente la lettera maiuscola \textbf{'A'}. 
+	
+	Seguendo la medesima logica, il file definisce le corrispondenze per l'intero set di classi dello \textit{split}, come illustrato nei seguenti esempi:
+	\begin{itemize}
+		\item $\dots$
+		\item $\texttt{12} \quad \texttt{67} \longrightarrow \textbf{'C'}$
+		\item $\texttt{32} \quad \texttt{87} \longrightarrow \textbf{'W'}$
+		\item $\texttt{1} \quad \texttt{49} \longrightarrow \textbf{'1'}$
+		\item $\texttt{2} \quad \texttt{50} \longrightarrow \textbf{'2'}$
+		\item $\dots$
+	\end{itemize}
+	
+	In sintesi, il file di mapping descrive una pipeline di trasformazione deterministica che consente di tradurre gli output numerici del modello predittivo in caratteri testuali leggibili dall'utente umano. La sequenza logica di decodifica può essere così schematizzata:
+	
+	$$\text{Label numerica EMNIST} \xrightarrow{\quad \text{Mapping} \quad} \text{Codice ASCII} \xrightarrow{\quad \text{Decoding} \quad} \text{Carattere reale}$$
+	
+	$$\texttt{10} \longrightarrow \texttt{65} \longrightarrow \textbf{'A'}$$
+	
+	\section{Il Modulo Digitalizzatore: computer vision e pre-elaborazione}
 	Data la natura della mappa (disegnata a mano), si è optato per tecniche di pulizia dell'immagine tramite la libreria OpenCV al posto di addestrare un ML specifico per la digitalizzazione geografica. Il modulo ha il compito di trasformare una fotografia grezza in una matrice binaria pulita.
 	
 	\subsection{Evoluzione del Programma: Dalla Base alle Soglie Adattive}
