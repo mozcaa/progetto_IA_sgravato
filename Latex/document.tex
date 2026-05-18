@@ -1,0 +1,418 @@
+\documentclass[12pt,a4paper]{article}
+
+% --- Pacchetti Standard ---
+\usepackage[utf8]{inputenc}
+\usepackage[italian]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{booktabs}
+
+% Configurazione dei colori
+\definecolor{VerdeEstensione}{RGB}{24, 128, 56}
+% -------------------------
+
+% Configurazione snippet di codice
+\lstset{
+	language=Python,
+	basicstyle=\ttfamily\small,
+	keywordstyle=\color{blue},
+	commentstyle=\color{gray},
+	stringstyle=\color{red},
+	breaklines=true,
+	frame=single,
+	showstringspaces=false
+}
+% --------------------------------
+
+% Configurazione link cliccabili
+\hypersetup{
+	hidelinks,
+}
+% ------------------------------
+
+\begin{document}
+	
+	% --- Frontespizio ---
+	\begin{titlepage}
+		\centering
+		\vspace*{1cm}
+		{\Huge \textbf{Università degli Studi di Perugia}} \\
+		\vspace{0.5cm}
+		{\Large Dipartimento di Informatica / Ingegneria Informatica} \\
+		
+		\vspace{2cm}
+		
+		{\Large \textbf{Corso di Intelligenza Artificiale}} \\
+		\vspace{1.5cm}
+		
+		{\huge \textbf{Analisi e Digitalizzazione di Mappe Geopolitiche Tramite Computer Vision e Deep Learning}} \\
+		\vspace{3cm}
+		
+		\begin{minipage}[t]{0.45\textwidth}
+			\begin{flushleft} \large
+				\emph{Studenti:}\\
+				\textbf{Romeo Miscio} 364672\\
+				\textbf{Tommaso Moschini}\\
+				\textbf{Federico Tabuani}
+			\end{flushleft}
+		\end{minipage}
+		\hfill
+		\begin{minipage}[t]{0.45\textwidth}
+			\begin{flushright} \large
+				\emph{Docente:} \\
+				\textbf{Prof.ssa Valentina Poggiani}
+			\end{flushright}
+		\end{minipage}
+		
+		\vfill
+		{\large Anno Accademico 2025/2026} \\
+		\vspace{0.5cm}
+		{\large Ultima modifica: \today}
+	\end{titlepage}
+	
+	\newpage
+	\tableofcontents
+	\newpage
+	
+	\section{Definizione del Dominio: Navigazione e Mappatura Territoriale}
+	Il presente progetto si pone l'obiettivo di modellare un sistema di navigazione per un agente operante in un ambiente discretizzato, caratterizzato da territori frazionati e costi di transito variabili.
+	
+	\subsection{Architettura della Mappa e Discretizzazione}
+	L'ambiente è rappresentato come una matrice di celle, dove la granularità della griglia determina la precisione della rappresentazione geografica:
+	\begin{itemize}
+		\item \textbf{Rappresentazione degli Stati}: Uno stato (o regione) può coincidere con una singola cella o essere costituito da un cluster di più celle contigue per rappresentare estensioni territoriali maggiori.
+		\item \textbf{Segmentazione Cromatica}: Al fine di distinguere topologicamente le diverse regioni, ogni stato è caratterizzato da un colore differente rispetto a quelli adiacenti. Questo garantisce una separazione netta dei confini durante la fase di analisi dell'immagine.
+		\item \textbf{Processo di Pixellazione}: La definizione dei confini avviene attraverso una procedura di pixellazione che mappa l'input visivo sulla griglia di navigazione (inizialmente pensata come una griglia $100\times100$, in seguito resa variabile pur mantenendo le dimensioni di un quadrato), definendo l'appartenenza di ogni coordinata $(x, y)$ a uno specifico stato.
+	\end{itemize}
+	
+	\subsection{Logica di Movimento e Modello dei Costi}
+	Il movimento dell'agente è vincolato a spostamenti tra celle adiacenti lungo le direzioni cardinali (Nord, Sud, Est, Ovest). La funzione di costo associata alle azioni di navigazione è così definita:
+	\begin{itemize}
+		\item \textbf{Costo Base di Spostamento}: Il transito tra due celle adiacenti ha un costo base unitario pari a 1.
+		\item \textbf{Penalità di Confine}: L'attraversamento di un confine tra due stati distinti comporta un onere aggiuntivo di +1 sul costo totale dello spostamento (risultando quindi in un costo totale pari a 2).
+		\item \textbf{Penalità Territorio Nemico}: L'ingresso in uno stato ostile applica un malus aggiuntivo istantaneo al costo del tragitto. Tale malus è calcolato moltiplicando il livello di pericolosità del territorio nemico (con valori compresi tra 1 e 9) per un parametro di calibrazione $X$ (da definire in fase di configurazione). Questo approccio parametrico permette all'algoritmo di ricerca di valutare percorsi più o meno prudenti, bilanciando in modo dinamico la brevità del tragitto con l'esposizione al rischio.
+	\end{itemize}
+	
+	\subsubsection*{Formalizzazione Matematica ed Esempio}
+	Dato un percorso che attraversa $n$ celle, interseca $k$ confini di stato e prevede l'ingresso in $m$ stati nemici (ciascuno caratterizzato da un livello di pericolosità $L_i$), il costo totale $C$ è espresso dalla seguente formula:
+	\begin{equation}
+		C = n + k + \sum_{i=1}^{m} (L_i \cdot X)
+	\end{equation}
+	
+	\textbf{Esempio pratico}: Uno spostamento attraverso 6 celle all'interno dello stesso stato alleato ha un costo pari a 6. Se lo stesso spostamento prevede l'attraversamento di un confine per entrare in uno stato nemico con livello di pericolosità 4, il calcolo del costo diverrà: $6 \text{ (costo celle)} + 1 \text{ (costo confine)} + 4X \text{ (malus nemico)}$. Il costo totale sarà quindi pari a $7 + 4X$.
+	
+	\subsection{Classificazione e Tipologia dei Territori}
+	In fase di acquisizione, ogni cella viene analizzata e classificata per definirne le proprietà fisiche e tattiche. Invece di utilizzare nomenclature estese, il sistema adotta una codifica alfanumerica ottimizzata:
+	
+	\begin{table}[h!]
+		\centering
+		\renewcommand{\arraystretch}{1.3}
+		\begin{tabular}{|c|l|p{8.5cm}|}
+			\hline \textbf{Identificatore} & \textbf{Tipologia} & \textbf{Proprietà} \\ \hline
+			\textbf{S} & Start & Punto di origine dell'agente. \\ \hline
+			\textbf{W} & Win & Obiettivo finale o destinazione del percorso. \\ \hline
+			\textbf{A} & Alleato & Territorio amichevole con transito standard. \\ \hline
+			\textbf{X} & Confine Naturale & Ostacolo insormontabile (non attraversabile). \\ \hline
+			\textbf{1 - 9} & Territorio Nemico & Rappresenta il grado di pericolosità crescente. I valori numerici sono integrati nella funzione di costo globale. \\ \hline
+		\end{tabular}
+		\caption{Codifica alfanumerica e tipologia dei territori acquisiti}
+	\end{table}
+	
+	\section{Architettura del Software e Scelte Progettuali}
+	L'architettura del sistema è stata sviluppata seguendo un approccio modulare, ispirato ai principi dei microservizi, al fine di garantire scalabilità e facilità di debugging. Inizialmente concepito come uno script monolitico, il progetto è stato rifattorizzato in tre moduli distinti per evitare conflitti tra le librerie di elaborazione delle immagini e quelle di apprendimento automatico. Questa separazione delle responsabilità permette di isolare eventuali errori logici o di classificazione, garantendo che interventi sulla rete neurale non compromettano la gestione geometrica dei confini.
+	La struttura finale si compone di:
+	\begin{itemize}
+		\item \textbf{Modulo Digitalizzatore (\texttt{modulo\_digitalizzatore.py})}: Specializzato nelle operazioni di pre-elaborazione e computer vision. Prepara l'immagine, ispessisce l'inchiostro e rimuove i quadretti.
+		\item \textbf{Modulo ML (\texttt{modulo\_ml.py})}: Deputato al riconoscimento dei caratteri tramite reti neurali. Prende il ritaglio pulito, lo scala e restituisce il carattere predetto.
+		\item \textbf{Hub Centrale (\texttt{hub\_master.py})}: Agisce come controller principale del flusso di esecuzione, coordinando i moduli, isolando le isole di pixel, colorando gli stati e assemblando la matrice finale.
+	\end{itemize}
+	
+	\section{Sviluppo del Modello ML: Riconoscimento dei Caratteri}
+	Il modulo \texttt{modulo\_ml.py} funge da wrapper per una Rete Neurale Convoluzionale (CNN). Per ottimizzare le prestazioni, il modello viene caricato in memoria esclusivamente all'avvio del programma.
+	
+	\subsection{Creazione del Modello: Dalla MLP alla CNN}
+	Inizialmente, il Machine Learning per riconoscere lettere e numeri scritti a mano era stato strutturato con un'architettura MLP (Multilayer Perceptron). Tuttavia, i risultati non erano soddisfacenti. La criticità risiedeva nel modo in cui l'MLP elabora i dati: richiede un vettore piatto (l'appiattimento di una foto $28\times28$ in un vettore da 784 elementi), causando la perdita totale della percezione spaziale e geometrica delle lettere. 
+	Si è quindi deciso di passare a una CNN (Rete Neurale Convoluzionale), dove le immagini vengono analizzate come griglie 2D. Il passaggio ha richiesto due modifiche: applicare la normalizzazione tra 0 e 1 e ridare all'immagine la dimensione 2D.
+	
+	\begin{lstlisting}
+		# Normalizzazione tra 0 e 1
+		X_train = X_train / 255.0
+		X_test = X_test / 255.0
+		
+		# Reshape dei dati per renderli compatibili con i layer Conv2D
+		X_train = X_train.reshape(-1, IMG_SIZE, IMG_SIZE, 1)
+		X_test = X_test.reshape(-1, IMG_SIZE, IMG_SIZE, 1)
+	\end{lstlisting}
+	
+	La sostituzione del blocco MLP con l'architettura convoluzionale è stata strutturata come segue:
+	\begin{lstlisting}
+		# Nuovo Modello CNN
+		model = keras.Sequential()
+		# Layer di Input: riceve immagini 28x28 con 1 canale
+		model.add(layers.Input(shape=(IMG_SIZE, IMG_SIZE, 1)))
+		# Primo blocco Convoluzionale (estrae feature come bordi e linee)
+		model.add(layers.Conv2D(32, kernel_size=(3,3), activation="relu"))
+		model.add(layers.MaxPooling2D(pool_size=(2,2)))
+		# Secondo blocco Convoluzionale (estrae feature complesse come curve e angoli)
+		model.add(layers.Conv2D(64, kernel_size=(3,3), activation="relu"))
+		model.add(layers.MaxPooling2D(pool_size=(2,2)))
+		# Appiattisce i dati prima della classificazione finale
+		model.add(layers.Flatten())
+		# Dropout per evitare l'overfitting
+		model.add(layers.Dropout(0.5))
+	\end{lstlisting}
+	
+	\subsection{Il Dataset EMNIST}
+	\textbf{EMNIST} (Extended Modified National Institute of Standards and Technology) è un celebre dataset di immagini utilizzato nel campo del machine learning e della computer vision per addestrare algoritmi a riconoscere la scrittura manuale. \newline
+	Include centinaia di migliaia di \textbf{lettere dell'alfabeto} scritte a mano, oltre a tutte le immagini di \textbf{numeri}, sempre scritti a mano, contenuti nel dataset \textbf{MNIST}.
+	\medskip
+	
+	Esistono diverse versioni del dataset, dette \textbf{split} (ad esempio \textit{Balanced}, \textit{Letters} o \textit{ByClass}), ciascuna contraddistinta da differenti combinazioni e bilanciamenti di lettere e numeri. \newline
+	La versione che andremo a usare è la \textbf{Balanced}, in quanto offre una distribuzione equilibrata tra le varie classi di caratteri, dove ogni carattere è rappresentato da un numero simile di esempi, evitando che il modello venga addestrato molto di più su alcune classi rispetto ad altre.
+	\bigskip
+	
+	Questo skip contiene \textbf{cinque} file principali:
+	\begin{itemize}
+		\item File con le immagini di training;
+		\item File contenente le label associate alle immagini di training;
+		\item File contenente le immagini di test;
+		\item File contenente le label associate alle immagini di test;
+		\item File di mapping.
+	\end{itemize}
+	
+	I file delle immagini contengono i pixel dei caratteri scritti a mano, mentre i file delle label contengono il numero della classe associata a ogni immagine. \newline
+	La corrispondenza tra immagini e label avviene tramite la posizione: la prima immagine ha come label il primo valore del file delle label, la seconda immagine ha come label il secondo valore, e così via.
+	\medskip
+	
+	Il file di mapping serve invece a tradurre le label numeriche interne di EMNIST nei caratteri reali. \newline In pratica funziona come un dizionario: associa a ogni numero di classe il codice ASCII del carattere corrispondente. Per esempio, se nel file delle label la classe 10 rappresenta la lettera A, allora nel file di mapping troveremo un’associazione tra 10 e il codice ASCII della lettera A, cioè 65. Tramite questa informazione possiamo capire che una certa immagine, associata alla label 10, rappresenta effettivamente il carattere "A".
+	
+	\subsubsection{Significato di IDX}
+	La struttura generale di un file \textbf{IDX} si articola nel seguente modo:
+	\begin{itemize}
+		\item \textbf{Magic number} (4 byte)
+		\item \textbf{Dimensione 1} (4 byte)
+		\item \textbf{Dimensione 2} (4 byte)
+		\item \dots
+		\item \textbf{Dati} (array di elementi)
+	\end{itemize}
+	
+	Il \textit{magic number} è un identificativo posizionato all'inizio del file che specifica la tipologia di dati contenuti. Nei file IDX occupa esattamente i primi 4 byte, la cui anatomia interna è così ripartita:
+	\begin{itemize}
+		\item \textbf{Primi due byte:} Sono sempre impostati a zero ($00\ 00$).
+		\item \textbf{Terzo byte:} Indica il tipo di dato memorizzato (ad esempio, il codice $08$ corrisponde al tipo \textit{unsigned byte}).
+		\item \textbf{Quarto byte:} Indica il numero di dimensioni del vettore o della matrice.
+	\end{itemize}
+	
+	Per comprendere meglio, si consideri il codice esadecimale $00\ 00\ 08\ 03$. La sua scomposizione rivela:
+	\begin{itemize}
+		\item $00\ 00 \rightarrow$ I primi due byte fissi a zero.
+		\item $08 \rightarrow$ Tipo di dato \textit{unsigned byte} (valori interi compresi tra 0 e 255, ideali per i pixel in scala di grigi).
+		\item $03 \rightarrow$ Array a tre dimensioni (numero di immagini, righe, colonne).
+	\end{itemize}
+	
+	Se interpretato come un unico numero intero a 32 bit, questo valore esadecimale corrisponde al numero decimale 2051, che rappresenta il \textit{magic number} standard per i file delle immagini nei dataset MNIST ed EMNIST. Al contrario, i file contenenti le etichette (\textit{labels}) presentano il codice decimale 2049 ($00\ 00\ 08\ 01$): il formato dei dati rimane lo stesso ($08$), ma l'array è a una sola dimensione ($01$), in quanto si tratta di un semplice vettore lineare di valori.
+	
+	\subsubsection{Formato delle immagini}
+	Nel dataset EMNIST le \textbf{immagini} sono \textbf{raffigurate} in \textbf{scala di grigi} da \textbf{28x28 pixel}.
+	\medskip
+	
+	Le immagini non sono salvate con estensioni tradizionali, come \textcolor{VerdeEstensione}{.png} o \textcolor{VerdeEstensione}{.jpg}, bensì in formato \textbf{IDX}. Si tratta di un formato binario semplice, progettato specificamente per rappresentare vettori e matrici multidimensionali di numeri. La struttura di un file IDX prevede una parte iniziale, denominata \textbf{header}, contenente i metadati del file, seguita dai dati veri e propri (i pixel delle immagini o i valori delle etichette). \newline
+	\newline
+	I file di nostro interesse risultano:
+	\begin{itemize}
+		\item \textbf{emnist-balanced-train-images-idx3-ubyte.gz}
+		\item \textbf{emnist-balanced-train-labels-idx1-ubyte.gz}
+		\item \textbf{emnist-balanced-test-images-idx3-ubyte.gz}
+		\item \textbf{emnist-balanced-test-labels-idx1-ubyte.gz}
+		\item \textbf{emnist-balanced-mapping.txt}
+	\end{itemize}
+	
+	Per comprendere l'organizzazione pratica di questi file, si consideri come esempio il file di addestramento:$$\texttt{emnist-balanced-train-images-idx3-ubyte.gz}$$La nomenclatura del file non è casuale, ma ne descrive dettagliatamente il contenuto e la struttura secondo lo schema seguente:
+	\begin{itemize}
+		\item \textbf{\texttt{emnist-balanced}}: Identifica lo specifico \textit{split} (\textit{Balanced}) del dataset EMNIST;
+		\item \textbf{\texttt{train}}: Indica che i dati sono riservati alla fase di addestramento (\textit{training set});
+		\item \textbf{\texttt{images}}: Specifica che il file contiene i pattern visivi (i pixel) e non le etichette;
+		\item \textbf{\texttt{idx3}}: Indica un formato IDX a tre dimensioni;
+		\item \textbf{\texttt{ubyte}}: Specifica che i dati sono memorizzati come \textit{unsigned byte} (valori interi compresi tra 0 e 255);
+		\item \textbf{\texttt{gz}}: Rappresenta l'estensione dell'archivio compresso tramite l'algoritmo \textit{Gzip}.
+	\end{itemize}
+	
+	L'indicazione più rilevante per il parsing dei dati è il suffisso \texttt{idx3-ubyte}. La dicitura \texttt{idx3} esplicita che i dati sono strutturati come un array tridimensionale. Nel contesto delle immagini, queste tre dimensioni corrispondono rispettivamente a:
+	\begin{enumerate}
+		\item Numero totale di immagini nel file;
+		\item Numero di righe di ciascuna immagine;
+		\item Numero di colonne di ciascuna immagine.
+	\end{enumerate}
+	
+	Nel caso specifico del file \textit{EMNIST Balanced train}, la struttura del tensore dei dati può essere espressa matematicamente come una matrice tridimensionale di dimensioni $[112\,800, 28, 28]$. Ciò significa che il file racchiude:
+	\begin{itemize}
+		\item $112\,800$ immagini complessive;
+		\item $28$ righe per singola immagine;
+		\item $28$ colonne per singola immagine.
+	\end{itemize}
+	
+	Di conseguenza, ogni singola immagine è composta da $28 \times 28 = 784$ pixel. Ciascun pixel è rappresentato da un valore numerico discreto nell'intervallo $[0, 255]$, dove lo $0$ corrisponde al nero totale, il $255$ al bianco puro e i valori intermedi definiscono le sfumature della scala di grigi.
+	\bigskip
+	
+	Dal punto di vista fisico, all'interno del file binario non esistono elementi di separazione sintattica come indici, virgole, parentesi o metadati tra una struttura e l'altra. Il file si presenta come un flusso continuo di dati diviso rigorosamente in due sezioni: l'header e il payload (i dati effettivi).$$\text{[Header]} \underbrace{\text{[Pixel, Pixel, Pixel, Pixel, \dots]}}_{\text{Dati delle immagini}}$$Nel caso specifico del file delle immagini, l'header occupa esattamente i primi 16 byte, poiché è composto da quattro numeri interi a 32 bit (ciascuno dei quali richiede 4 byte):
+	\begin{itemize}
+		\item \textbf{Magic number:} 4 byte (identificativo del formato).
+		\item \textbf{Numero di immagini:} 4 byte (quantità totale di campioni).
+		\item \textbf{Numero di righe:} 4 byte (risoluzione verticale).
+		\item \textbf{Numero di colonne:} 4 byte (risoluzione orizzontale).
+	\end{itemize}
+	
+	Superata la soglia dei primi 16 byte dedicati all'header, iniziano immediatamente i valori dei pixel. Il file non contiene marcatori espliciti per delimitare i confini tra le singole immagini; si sviluppa invece come un'unica sequenza unidimensionale di byte:$$p_0, p_1, p_2, p_3, p_4, \dots, p_{88\,435\,199}$$La separazione e la corretta attribuzione dei pixel a ciascuna immagine avvengono per via logica in fase di parsing, sapendo a priori che ogni griglia è composta da $28 \times 28 = 784$ valori consecutivi. La segmentazione del flusso binario segue quindi questa logica sequenziale:
+	\begin{itemize}
+		\item \textbf{Pixel da $0$ a $783$:} Immagine 1
+		\item \textbf{Pixel da $784$ a $1567$:} Immagine 2
+		\item \textbf{Pixel da $1568$ a $2351$:} Immagine 3
+		\item \dots
+	\end{itemize}
+	Questo principio evidenzia la caratteristica fondamentale del formato: all'interno del file le immagini non sono memorizzate come matrici bidimensionali, bensì come un unico vettore linearizzato (flattened) di byte compresi nell'intervallo $[0, 255]$. La geometria bidimensionale originaria ($28 \times 28$) viene ricostruita via software solo in un secondo momento, sfruttando le informazioni sulle dimensioni precedentemente estratte dall'header.
+	
+	\subsubsection{Formato delle label}
+	In modo analogo a quanto visto per le immagini, il file contenente le etichette di addestramento è denominato:$$\texttt{emnist-balanced-train-labels-idx1-ubyte.gz}$$
+	La nomenclatura segue la medesima logica strutturale, descrivendo le proprietà intrinseche del set di dati:
+	\begin{itemize}
+		\item \textbf{\texttt{emnist-balanced}}: Identifica lo specifico \textit{split} (\textit{Balanced}) del dataset EMNIST.
+		\item \textbf{\texttt{train}}: Indica che le etichette appartengono al set di addestramento (\textit{training set}).
+		\item \textbf{\texttt{labels}}: Specifica che il file contiene le classi corrette (i target) associate alle immagini.
+		\item \textbf{\texttt{idx1}}: Indica un formato IDX a una sola dimensione.
+		\item \textbf{\texttt{ubyte}}: Specifica la codifica dei dati come \textit{unsigned byte} (valori interi compresi tra 0 e 255).
+		\item \textbf{\texttt{gz}}: Rappresenta l'estensione dell'archivio compresso tramite \textit{Gzip}.
+	\end{itemize}
+	
+	Il suffisso chiave in questo contesto è \texttt{idx1-ubyte}. La dicitura \texttt{idx1} esplicita che i dati non sono organizzati in matrici bidimensionali, bensì strutturati come un array monodimensionale. Il file si configura quindi come un semplice vettore lineare:$$[L_0, L_1, L_2, L_3, \dots, L_{n-1}]$$Anche la struttura fisica di questo file prevede un header iniziale. Nel caso delle etichette, l'header occupa soltanto 8 byte, poiché deve veicolare due soli numeri interi a 32 bit (da 4 byte ciascuno):
+	\begin{itemize}
+		\item \textbf{Magic number:} 4 byte (identificativo del formato).
+		\item \textbf{Numero di etichette:} 4 byte (quantità totale di campioni).
+	\end{itemize}
+	
+	Subito dopo questa sezione di 8 byte ha inizio il flusso dei dati effettivi. La disposizione fisica del file binario si articola quindi secondo lo schema seguente:$$\text{[Magic number]} \ \text{[Numero label]} \underbrace{\text{[Label, Label, Label, Label, \dots]}}_{\text{Dati delle etichette}}$$
+	Nel caso specifico del file \textit{EMNIST Balanced training}, i metadati contenuti nell'header assumono i seguenti valori:
+	\begin{itemize}
+		\item \textbf{Magic number:} 2049 ($00\ 00\ 08\ 01$ in esadecimale, che denota il tipo \textit{unsigned byte} mappato su un array monodimensionale).
+		\item \textbf{Numero di etichette:} 112,800 (coerente con il numero totale di immagini presenti nel rispettivo file di payload).
+	\end{itemize}
+	
+	Al superamento dei primi 8 byte dell'header, il file presenta una sequenza continua di $112\,800$ singoli byte. Ciascun byte rappresenta la classe di appartenenza (il valore target) della rispettiva immagine, creando una corrispondenza biunivoca perfetta basata esclusivamente sull'indice di posizione: l'etichetta in posizione $i$-esima nel file delle label identificherà la classe dell'immagine ricostruita in posizione $i$-esima nel file delle immagini. \newline
+	
+	È importante sottolineare che un'etichetta (\textit{label}) non è memorizzata direttamente sotto forma di carattere testuale (come "A" o "C"). All'interno del file binario, i target sono rappresentati esclusivamente da numeri interi, i quali fungono da indici interni per le classi del dataset EMNIST. Ad esempio, un'etichetta può assumere valori discreti come:
+	$$\texttt{label} = 10 \quad \text{oppure} \quad \texttt{label} = 35$$
+	Preso singolarmente, questo valore numerico non esplicita in modo immediato il carattere grafico corrispondente. Per associare univocamente l'indice numerico alla rispettiva entità alfanumerica (sapere, ad esempio, se la classe estratta rappresenti una lettera maiuscola, minuscola o una cifra), è necessario consultare un file di dizionario aggiuntivo, denominato file di mapping (\textit{mapping file}).
+	
+	\subsubsection{Relazione tra immagini e label}
+	I file delle immagini e delle etichette non contengono puntatori interni o ID per legarsi tra loro; il loro accoppiamento avviene esclusivamente per corrispondenza posizionale (o per indice).Ciò implica che la struttura logica del dataset si basa sul perfetto allineamento sequenziale dei due flussi di dati:
+	\begin{align*}
+		\text{Immagine } 0 &\longrightarrow \text{Label } 0 \\
+		\text{Immagine } 1 &\longrightarrow \text{Label } 1 \\
+		\text{Immagine } 2 &\longrightarrow \text{Label } 2 \\
+		\vdots
+	\end{align*}
+	
+	Di conseguenza, la prima immagine estratta dal file delle immagini ha come risposta corretta (\textit{ground truth}) la prima etichetta estratta dal file delle etichette. Mentre a livello hardware (nei file grezzi) i dati si presentano come un vettore continuo di pixel e un vettore continuo di singoli byte — in cui a ogni blocco di 784 pixel corrisponde una singola etichetta —, in fase di sviluppo software questa struttura viene rimodellata. Attraverso il codice di preprocessing, i dati vengono organizzati in due array paralleli, convenzionalmente denominati $X_{\text{train}}$ (le caratteristiche o \textit{features}) e $y_{\text{train}}$ (i target o \textit{labels}), stabilendo una corrispondenza biunivoca uno-a-uno:
+	\begin{itemize}
+		\item $\texttt{X\_train[0]} \rightarrow$ Matrice $28 \times 28$ della prima immagine.
+		\item $\texttt{y\_train[0]} \rightarrow$ Classe numerica corretta della prima immagine.\vspace{0.2cm}
+		\item $\texttt{X\_train[1]} \rightarrow$ Matrice $28 \times 28$ della seconda immagine.
+		\item $\texttt{y\_train[1]} \rightarrow$ Classe numerica corretta della seconda immagine.\vspace{0.2cm}
+		\item $\texttt{X\_train[2]} \rightarrow$ Matrice $28 \times 28$ della terza immagine.
+		\item $\texttt{y\_train[2]} \rightarrow$ Classe numerica corretta della terza immagine.
+	\end{itemize}
+	
+	Il mantenimento di questa rigorosa corrispondenza per indice è una condizione fondamentale e imprescindibile per la fase di addestramento: se l'ordine dei vettori venisse alterato anche solo di una posizione, il modello riceverebbe associazioni errate (\textit{mismatch}), compromettendo del tutto la capacità dell'algoritmo di generalizzare e apprendere correttamente la relazione tra i pattern visivi e le rispettive classi.
+	
+	\subsubsection{File di Mapping}
+	A differenza dei file precedentemente analizzati, il file di configurazione:
+	$$\texttt{emnist-balanced-mapping.txt}$$
+	non adotta il formato binario IDX, bensì si presenta come un comune file di testo (\textit{plain text}). La sua funzione è puramente relazionale: funge da tabella di raccordo per convertire le etichette numeriche del dataset nei rispettivi caratteri alfanumerici reali. L'organizzazione interna del file prevede che ogni riga sia composta da una coppia di valori numerici separati da uno spazio:
+	$$\texttt{[indice\_classe]} \quad \texttt{[codice\_ASCII]}$$
+	Il primo valore rappresenta l'indice della classe associato internamente da EMNIST, mentre il secondo valore esprime il corrispettivo punto di codifica nello standard ASCII.Ad esempio, l'estrazione di una riga come la seguente:
+	$$\texttt{10} \quad \texttt{65}$$
+	indica che alla classe EMNIST $\texttt{10}$ corrisponde il codice ASCII $\texttt{65}$. Nella codifica dei caratteri, il valore decimale $65$ mappa univocamente la lettera maiuscola 'A'. Seguendo la medesima logica, il file definisce le corrispondenze per l'intero set di classi dello split, come illustrato nei seguenti esempi:
+	\begin{itemize}
+		\item $\dots$
+		\item $\texttt{12} \quad \texttt{67} \longrightarrow \textbf{'C'}$
+		\item $\texttt{32} \quad \texttt{87} \longrightarrow \textbf{'W'}$
+		\item $\texttt{1} \quad \texttt{49} \longrightarrow \textbf{'1'}$
+		\item $\texttt{2} \quad \texttt{50} \longrightarrow \textbf{'2'}$
+		\item $\dots$
+	\end{itemize}
+	
+	In sintesi, il file di mapping descrive una pipeline di trasformazione deterministica che consente di tradurre gli output numerici del modello predittivo in caratteri testuali leggibili dall'utente umano. La sequenza logica di decodifica può essere così schematizzata:
+	$$\text{Label numerica EMNIST} \xrightarrow{\quad \text{Mapping} \quad} \text{Codice ASCII} \xrightarrow{\quad \text{Decoding} \quad} \text{Carattere reale}$$$$\texttt{10} \longrightarrow \texttt{65} \longrightarrow \textbf{'A'}$$
+	
+	\subsection{Tentativi di Generalizzazione e Modifiche in Inferenza}
+	Dopo la prima correzione, la precisione era di 3 previsioni corrette e 4 errate su esempi manuali. Per migliorare la generalizzazione sono stati tentati diversi approcci:
+	\begin{itemize}
+		\item \textbf{Data Augmentation}: Si è provato ad aggiungere distorsioni casuali ma leggere (RandomRotation fino al 5\%, RandomZoom e RandomTranslation fino al 10\%) nel training set. La modifica non ha portato alcun miglioramento allo score ed è stata annullata.
+		\item \textbf{Filtro di Sfocatura (Gaussian Blur)}: In fase di inferenza si è tentato di "ammorbidire" il tratto per simularne uno simile all'inchiostro del dataset, utilizzando \texttt{img.filter(ImageFilter.GaussianBlur(radius=0.8))}. Anche questo tentativo è stato scartato per scarsi risultati.
+		\item \textbf{Standardizzazione dell'Input}: La scelta vincente (che ha portato il punteggio a 6 caratteri corretti su 7) è stata processare le immagini di test in inferenza esattamente come nel training set: ritaglio delle parti inutili, centratura della lettera e scalatura mantenendo il rapporto d'aspetto, con lato massimo fissato a 20 pixel all'interno del riquadro $28\times28$. Grazie alla precisione geometrica dell'Hub, si è potuto evitare l'uso di librerie pesanti come SciPy per la sola ricerca delle forme.
+	\end{itemize}
+	
+	\subsection{Filtri Anti-rumore e l'Integrazione finale di SciPy}
+	Rimaneva un problema di robustezza al rumore: un semplice puntino isolato vicino a un "9" ingannava il sistema, facendogli credere che il carattere iniziasse molto più in alto. Di conseguenza il "9" veniva schiacciato in basso e predetto erroneamente come un "6" sbilenco.
+	Inizialmente si è alzata la soglia di rilevamento dell'inchiostro, ignorando i grigi scuri e richiedendo almeno 2 pixel vicini:
+	\begin{lstlisting}
+		# Ricerca intelligente: soglia aumentata a 50
+		righe_con_pixel = np.sum(arr > 50, axis=1) > 2
+		colonne_con_pixel = np.sum(arr > 50, axis=0) > 2
+	\end{lstlisting}
+	Poiché l'errore persisteva in alcuni casi limite, si è infine deciso di adottare un approccio più drastico utilizzando la libreria \textbf{SciPy} (già disponibile tramite scikit-learn) per rilevare ed isolare esclusivamente l'isola di pixel più grande associata al carattere, eliminando completamente i puntini di rumore. Questa modifica ha portato il ML a una precisione del 100\%.
+	
+	\section{Il Modulo Digitalizzatore: Computer Vision e Pre-elaborazione}
+	Data la natura della mappa (disegnata a mano), si è optato per tecniche di pulizia dell'immagine tramite la libreria OpenCV al posto di addestrare un ML specifico per la digitalizzazione geografica. Il modulo ha il compito di trasformare una fotografia grezza in una matrice binaria pulita.
+	
+	\subsection{Evoluzione del Programma: Dalla Base alle Soglie Adattive}
+	L'idea iniziale prevedeva la conversione in scala di grigi, il rimpicciolimento su griglia $100\times100$ e una soglia fissa (Threshold). Tuttavia, su fogli a quadretti e senza flash i risultati erano inutilizzabili.
+	Si è passati quindi a una \textbf{Soglia Adattiva} (\texttt{cv2.adaptiveThreshold}), calcolando il contrasto su finestre locali di $20\times20$ (poi affinate a $31\times31$ pixel). Questo rende il programma intelligente nel distinguere sfondi ombreggiati dai tratti reali. A ciò è stato affiancato un \textbf{Median Blur} (intensità 11) per cancellare le linee sottili dei quadretti mantenendo intatti i tratti marcati.
+	
+	\subsection{Gestione del Tratto di Penna e Rimozione Quadretti}
+	Un ostacolo critico era l'uso di una penna dal tratto molto sottile, simile allo spessore della griglia del foglio, accentuato dalla riduzione di risoluzione.
+	\begin{enumerate}
+		\item \textbf{Tentativo di Dilatazione}: Si è tentato di usare un pennello $3\times3$ (\texttt{cv2.dilate}) per spalmare l'inchiostro e unire i buchi. Il tratto diveniva perfetto, ma il rumore aumentava drasticamente.
+		\item \textbf{Erosione Morfologica}: Per ottimizzare il sistema salvando i tratti deboli senza conservare i quadretti, si è optato per l'Erosione Morfologica \textit{prima} di sfocare l'immagine. Usando un kernel ridotto, si espandono i pixel neri (ispessendo la penna) permettendo poi di alzare il livello del Median Blur in sicurezza.
+		\begin{lstlisting}
+			# Creiamo un pennello 2x2
+			kernel_penna = np.ones((2,2), np.uint8)
+			# L'erosione in scala di grigi rende i tratti scuri piu spessi
+			img = cv2.erode(img, kernel_penna, iterations=1)
+		\end{lstlisting}
+		\item \textbf{Chiusura dei Buchi}: Infine, è stata applicata la Chiusura Morfologica per saldare perfettamente le discontinuità nel tratto senza ingrassare eccessivamente la linea.
+		\begin{lstlisting}
+			# MORPH_CLOSE salda i buchi interni al tratto
+			kernel_chiusura = np.ones((5,5), np.uint8)
+			img_binaria = cv2.morphologyEx(img_binaria, cv2.MORPH_CLOSE, kernel_chiusura, iterations=2)
+		\end{lstlisting}
+	\end{enumerate}
+	
+	È importante sottolineare la rimozione della funzione di pulizia globale (precedentemente denominata "Vacuum Cleaner"). Sebbene efficace nel rimuovere artefatti esterni, essa avrebbe eliminato anche i caratteri interni agli stati, fondamentali per l'etichettatura.
+	
+	\section{L'Hub Master: Integrazione e Logica di Sistema}
+	L'Hub Master coordina i moduli e risolve le criticità algoritmiche emerse durante l'unione delle varie parti. Nel primo test completo vi fu un'esplosione di falsi positivi poiché mancava la rimozione del rumore globale.
+	
+	\subsection{Classificazione tramite Analisi delle Aree}
+	Per filtrare gli elementi, è stata introdotta una classificazione basata sulla funzione \texttt{connectedComponents}, valutando l'area in pixel delle "isole":
+	\begin{itemize}
+		\item \textbf{Area < 300/400}: Classificata come rumore o "polvere" e scartata.
+		\item \textbf{Area compresa tra 300/400 e 15.000}: Identificata come potenziale carattere alfanumerico (in grado di sopravvivere alla pulizia) e inviata al modulo ML.
+		\item \textbf{Area > 15.000}: Identificata come confine geografico o stato.
+	\end{itemize}
+	Eventuali falsi positivi residui (come un "7" rilevato nel rumore esterno alla mappa) vengono neutralizzati dalla funzione \texttt{cv2.pointPolygonTest}, la quale garantisce che solo i caratteri contenuti \textit{all'interno} di un poligono chiuso vengano considerati nel calcolo dei percorsi.
+	
+	\subsection{Topologia degli Stati e Colorazione}
+	Un problema iniziale riguardava l'uso della funzione \texttt{cv2.RETR\_EXTERNAL}, che analizzava unicamente il contorno perimetrale globale. 
+	Per separare e colorare individualmente gli stati, si è scartato l'uso di algoritmi complessi (come il Teorema dei Quattro Colori) a favore della semplice assegnazione di colori unici da una palette predefinita di 12 toni. 
+	La soluzione topologica definitiva ha previsto l'inversione dello spazio di ricerca: invece di concentrarsi sulle linee nere, l'algoritmo utilizza \texttt{connectedComponents} per identificare gli spazi bianchi vuoti isolati (usando i confini neri come ostacoli), definendoli in modo perfetto come territori distinti a cui assegnare gli identificativi cromatici.
+	
+\end{document}
