@@ -20,15 +20,18 @@
 \contentsline {subsubsection}{\numberline {3.5.2}Manipolazione Dati e Visualizzazione}{13}{subsubsection.3.5.2}%
 \contentsline {subsubsection}{\numberline {3.5.3}Ingegneria delle Feature e Download del Dataset}{13}{subsubsection.3.5.3}%
 \contentsline {subsubsection}{\numberline {3.5.4}Architettura di Deep Learning (TensorFlow e Keras)}{13}{subsubsection.3.5.4}%
-\contentsline {subsection}{\numberline {3.6}Analisi della Struttura dei File IDX}{14}{subsection.3.6}%
-\contentsline {subsubsection}{\numberline {3.6.1}Studio dei File del Dataset EMNIST}{15}{subsubsection.3.6.1}%
-\contentsline {subsubsection}{\numberline {3.6.2}Organizzazione Fisica nel Flusso Binario}{16}{subsubsection.3.6.2}%
-\contentsline {subsubsection}{\numberline {3.6.3}Analisi del File delle Etichette (Labels)}{16}{subsubsection.3.6.3}%
-\contentsline {subsubsection}{\numberline {3.6.4}Corrispondenza Posizionale e Mapping Software}{18}{subsubsection.3.6.4}%
-\contentsline {subsubsection}{\numberline {3.6.5}Decodifica dei Target e File di Mapping}{18}{subsubsection.3.6.5}%
-\contentsline {section}{\numberline {4}Il Modulo Digitalizzatore: computer vision e pre-elaborazione}{20}{section.4}%
-\contentsline {subsection}{\numberline {4.1}Evoluzione del Programma: Dalla Base alle Soglie Adattive}{20}{subsection.4.1}%
-\contentsline {subsection}{\numberline {4.2}Gestione del Tratto di Penna e Rimozione Quadretti}{20}{subsection.4.2}%
-\contentsline {section}{\numberline {5}L'Hub Master: Integrazione e Logica di Sistema}{21}{section.5}%
-\contentsline {subsection}{\numberline {5.1}Classificazione tramite Analisi delle Aree}{21}{subsection.5.1}%
-\contentsline {subsection}{\numberline {5.2}Topologia degli Stati e Colorazione}{21}{subsection.5.2}%
+\contentsline {subsection}{\numberline {3.6}Analisi della configurazione ambiente e mappatura dati}{14}{subsection.3.6}%
+\contentsline {subsubsection}{\numberline {3.6.1}Controllo della Stocasticità (Determinismo e Seeding)}{14}{subsubsection.3.6.1}%
+\contentsline {subsubsection}{\numberline {3.6.2}Codifica Algebrica delle Classi (Label Encoding)}{15}{subsubsection.3.6.2}%
+\contentsline {subsubsection}{\numberline {3.6.3}Geometria dei Tensori e Spazio delle Feature}{15}{subsubsection.3.6.3}%
+\contentsline {subsubsection}{\numberline {3.6.4}Gestione dell'I/O e Indipendenza dalla Piattaforma (OS-Independent)}{16}{subsubsection.3.6.4}%
+\contentsline {section}{\numberline {4}Il Modulo Digitalizzatore: Computer Vision e Pre-elaborazione}{16}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Evoluzione del Programma: Dalla Base alle Soglie Adattive}{16}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Gestione del Tratto di Penna e Rimozione Quadretti}{17}{subsection.4.2}%
+\contentsline {section}{\numberline {5}Integrazione dei Moduli nell'Hub Master (da mettere nella sezione dell'hubmaster)}{18}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Meccanismo di Iniezione e Gestione dello Spazio dei Nomi}{19}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Invocazione della Pipeline e Agnosticismo dell'Interfaccia}{19}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}Sincronizzazione dei Tensori e Flusso di Ritorno per i Moduli di Inferenza}{19}{subsection.5.3}%
+\contentsline {section}{\numberline {6}L'Hub Master: Integrazione e Logica di Sistema}{20}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Classificazione tramite Analisi delle Aree}{20}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Topologia degli Stati e Colorazione}{20}{subsection.6.2}%
