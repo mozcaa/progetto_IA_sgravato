@@ -17,7 +17,7 @@ class MappaProblem(Problem):
         self.costo_base= costo_base
         self.fattore_ostile= fattore_ostile
 
-        self.aeroporti = {}    # Creo dizionario dove salvare per ogni territorio F il suo "Gate" (l'unico pixel del territorio da cui e verso cui è permesso il volo)
+        self.aeroporti = {}    # Creo dizionario dove salvare per ogni territorio F il suo "Gate" (pixel del territorio dove si atterra in caso di volo da un altro aeroporto)
         for y in range(self.max_y):
             for x in range(self.max_x):
                 valore_casella = str(self.matrice[y, x, 1])  # Lo leggo come stringa per poter usare startswith
