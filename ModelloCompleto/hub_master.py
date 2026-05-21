@@ -11,24 +11,42 @@ DIMENSIONE_FINALE = 300
 AREA_RUMORE = 400
 AREA_CONFINE = 15000
 
-COLORI_PER_LABEL = {
-    "1": [255, 100, 100], # Rosso
-    "2": [100, 255, 100], # Verde
-    "3": [100, 100, 255], # Blu
-    "4": [255, 255, 100], # Giallo
-    "5": [255, 100, 255], # Magenta
-    "6": [100, 255, 255], # Ciano
-    "7": [255, 165, 0],   # Arancione
-    "8": [147, 112, 219], # Viola
-    "9": [255, 192, 203], # Rosa
-    "C": [0, 250, 154],   # Verde primavera
-    "W": [22, 230, 140], # Khaki
-    "X": [173, 216, 230], # Azzurro
-    "A": [223, 0, 100], # Qualcosa
-    "G": [142, 93, 240], # Qualcosa 2
-    "F": [93, 142, 240], # Qualcosa 3
+COLORI_PER_LABEL = { #sfumature di rosso
+    "1": [255, 235, 235], # Rosa chiarissimo
+    "2": [255, 205, 205],
+    "3": [255, 170, 170],
+    "4": [255, 130, 130],
+    "5": [255, 85, 85],   # Rosso medio
+    "6": [230, 40, 40],
+    "7": [190, 0, 0],
+    "8": [140, 0, 0],
+    "9": [90, 0, 0],  # Bordeaux scurissimo
+    "C": [0, 200, 0],       # Verde Scuro
+    "W": [255, 215, 0],     # Oro/Giallo
+    "X": [100, 100, 100],   # Grigio scuro
+    "A": [200, 255, 200],   # Verde menta chiarissimo
+    "G": [178, 255, 255],   # Celeste ghiaccio
+    "F": [138, 43, 226],    # Viola acceso (BlueViolet)
     "VUOTO": [0, 0, 0]
 }
+
+# COLORI_PER_LABEL = { #heatmap
+#     "1": [255, 255, 150], # Giallo chiaro
+#     "2": [255, 235, 100], # Giallo intenso
+#     "3": [255, 210, 50],  # Giallo-Arancio
+#     "4": [255, 170, 0],   # Arancione
+#     "5": [255, 120, 0],   # Arancione scuro
+#     "6": [255, 70, 0],    # Rosso-Arancio
+#     "7": [220, 20, 0],    # Rosso
+#     "8": [170, 0, 0],     # Rosso scuro
+#     "9": [120, 0, 0],
+#     "C": [0, 255, 128],     # Verde Primavera
+#     "W": [30, 144, 255],    # Blu Dodger (Azzurro intenso)
+#     "X": [80, 80, 80],      # Antracite (Grigio quasi nero)
+#     "A": [176, 224, 230],   # Powder Blue (Azzurrino polvere)
+#     "G": [240, 255, 255],   # Bianco Ghiaccio
+#     "F": [255, 0, 255],     # Magenta puro:
+# }
 
 
 def avvia_hub(image_path):
@@ -116,6 +134,10 @@ def avvia_hub(image_path):
                     matrice_3d[y, x, 0] = 1
                     matrice_3d[y, x, 1] = label_per_id_territorio[id_territorio_corrente]
 
+                    # Associo un identificativo ad ogni territorio F
+                    if label_per_id_territorio[id_territorio_corrente] == "F":
+                        matrice_3d[y, x, 1] += str(id_territorio_corrente)
+
                     # Seleziona il colore associato alla label riconosciuta
                     colore_scelto = COLORI_PER_LABEL[label_per_id_territorio[id_territorio_corrente]]
                     immagine_matrice_colorata[y, x] = colore_scelto
@@ -160,9 +182,34 @@ def avvia_hub(image_path):
 
     return img_color, immagine_matrice_colorata, matrice_3d, start_scalato, goal_scalato
 
+def disegna_percorso(immagine, matrice_3d, percorso, colore): # Funzione disegna percorso algoritmo
+    px, py = percorso[0]
+    immagine[py, px] = colore   # Coloro punto di partenza
+
+    for i in range(1,len(percorso)):
+         x, y = percorso[i]
+         dist_x = abs(x-px) # Distanza tra coordinata x attuale e precedente
+         dist_y = abs(y-py) # Distanza tra coordinata y attuale e precedente
+         dist_tot = dist_x + dist_y # Distanza totale
+         valore_partenza = str(matrice_3d[py, px, 1])
+         valore_arrivo = str(matrice_3d[y, x, 1])
+
+         if dist_tot == 1:  # Opzione 1: passo tra due caselle 
+             immagine[y, x] = colore
+
+         elif valore_partenza.startswith("F") and valore_arrivo.startswith("F"):  # Opzione 2: salto tra due aeroporti (volo)
+             cv2.circle(immagine, (px, py), 3, colore, 1)
+             cv2.line(immagine, (x, y), (px, py), colore, 1)
+             cv2.circle(immagine, (x, y), 3, colore, 1)
+
+         elif (dist_x == 0 or dist_y == 0): # Opzione 3: scivolo su ghiaccio (linea dritta lunga)
+             cv2.line(immagine, (x, y), (px, py), colore, 1)
+
+         px = x
+         py = y
 
 if __name__ == "__main__":
-    nome_foto = "mappe/mappa16.jpg"  # Controlla sempre che il nome combaci!
+    nome_foto = "mappe/mappa_20.jpg"  # Controlla sempre che il nome combaci!
 
     img_originale, immagine_matrice_colorata, mat_3d, start, goal = avvia_hub(nome_foto)
     
@@ -182,32 +229,23 @@ if __name__ == "__main__":
         # DISEGNARE IL PERCORSO SULLA MAPPA
         # Se A* Manhattan ha trovato un percorso, coloriamo i pixel del percorso di rosso sulla mappa finale
         if percorso_astar_manhattan:
-            for x, y in percorso_astar_manhattan:
-                # Coloriamo il pixel di rosso [Rosso, Verde, Blu]
-                immagine_matrice_colorata[y, x] = [255, 0, 0]
-                immagine_matrice_colorata[y+1, x+1] = [255, 0, 0]
+            disegna_percorso(immagine_matrice_colorata, mat_3d, percorso_astar_manhattan, [255, 0, 0])
 
+        # Se A* Euclideo ha trovato un percorso, coloriamo i pixel del percorso di giallo sulla mappa finale        
         if percorso_astar_euclideo:
-            for x, y in percorso_astar_euclideo:
-                # Coloriamo il pixel di giallo [Rosso, Verde, Blu]
-                immagine_matrice_colorata[y, x] = [255, 255, 0]
-        # Se UCS ha trovato un percorso, coloriamo i pixel del percorso di verde sulla mappa finale
-
-        if percorso_ucs:
-            for x, y in percorso_ucs:
-                # Coloriamo il pixel di verde [Rosso, Verde, Blu]
-                immagine_matrice_colorata[y, x] = [0, 255, 0]
-        # Se Greedy ha trovato un percorso, coloriamo i pixel del percorso di blu sulla mappa finale
+            disegna_percorso(immagine_matrice_colorata, mat_3d, percorso_astar_euclideo, [255, 255, 0])
         
-        if percorso_greedy_manhattan:
-            for x, y in percorso_greedy_manhattan:
-                # Coloriamo il pixel di blu [Rosso, Verde, Blu]
-                immagine_matrice_colorata[y, x] = [0, 0, 255]
+        # Se UCS ha trovato un percorso, coloriamo i pixel del percorso di verde sulla mappa finale
+        if percorso_ucs:
+            disegna_percorso(immagine_matrice_colorata, mat_3d, percorso_ucs, [0, 255, 0])
 
+        # Se Greedy Manhattan ha trovato un percorso, coloriamo i pixel del percorso di blu sulla mappa finale
+        if percorso_greedy_manhattan:
+            disegna_percorso(immagine_matrice_colorata, mat_3d, percorso_greedy_manhattan, [0, 0, 255])
+
+        # Se Greedy Euclideo ha trovato un percorso, coloriamo i pixel del percorso di viola sulla mappa finale
         if percorso_greedy_euclideo:
-            for x, y in percorso_greedy_euclideo:
-                # Coloriamo il pixel di viola [Rosso, Verde, Blu]
-                immagine_matrice_colorata[y, x] = [255, 0, 255]
+            disegna_percorso(immagine_matrice_colorata, mat_3d, percorso_greedy_euclideo, [255, 0, 255])
                 
     fig, assi = plt.subplots(1, 2, figsize=(12, 6))
     assi[0].imshow(cv2.cvtColor(img_originale, cv2.COLOR_BGR2RGB))
