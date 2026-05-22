@@ -209,52 +209,65 @@ def disegna_percorso(immagine, matrice_3d, percorso, colore): # Funzione disegna
          py = y
 
 if __name__ == "__main__":
-    nome_foto = "mappe/mappa_20.jpg"  # Controlla sempre che il nome combaci!
+    nome_foto = "mappe/mappa15.jpg"  # Controlla sempre che il nome combaci!
 
     img_originale, immagine_matrice_colorata, mat_3d, start, goal = avvia_hub(nome_foto)
     
     # ATTIVAZIONE PATHFINDING E RAPPRESENTAZIONE PERCORSO SU MAPPA
+    mappa_greedy_ucs= immagine_matrice_colorata.copy()
+    mappa_astar_man= immagine_matrice_colorata.copy()
+    mappa_astar_eu= immagine_matrice_colorata.copy()
 
     if start and goal:
      
         print("Colori percorsi:")
         print("A* Manhattan = rosso")
-        print("A* Euclideo = giallo")
+        print("A* Euclideo = marrone")
         print("UCS = verde")
         print("Greedy Manhattan = blu")
         print("Greedy Euclideo = viola/magenta")
         # Passiamo la matrice e i punti scalati al file separato
         percorso_ucs, percorso_astar_manhattan, percorso_astar_euclideo, percorso_greedy_manhattan, percorso_greedy_euclideo = pathfinding.esegui_confronto(mat_3d, start, goal)
+
         
         # DISEGNARE IL PERCORSO SULLA MAPPA
-        # Se A* Manhattan ha trovato un percorso, coloriamo i pixel del percorso di rosso sulla mappa finale
+        # Se A* Manhattan ha trovato un percorso, coloriamo i pixel del percorso di grigio sulla mappa finale
         if percorso_astar_manhattan:
-            disegna_percorso(immagine_matrice_colorata, mat_3d, percorso_astar_manhattan, [255, 0, 0])
+            disegna_percorso(mappa_astar_man, mat_3d, percorso_astar_manhattan, [255, 0, 0])
 
-        # Se A* Euclideo ha trovato un percorso, coloriamo i pixel del percorso di giallo sulla mappa finale        
+        # Se A* Euclideo ha trovato un percorso, coloriamo i pixel del percorso di marrone sulla mappa finale        
         if percorso_astar_euclideo:
-            disegna_percorso(immagine_matrice_colorata, mat_3d, percorso_astar_euclideo, [255, 255, 0])
+            disegna_percorso(mappa_astar_eu, mat_3d, percorso_astar_euclideo, [101, 67, 33] )
         
         # Se UCS ha trovato un percorso, coloriamo i pixel del percorso di verde sulla mappa finale
         if percorso_ucs:
-            disegna_percorso(immagine_matrice_colorata, mat_3d, percorso_ucs, [0, 255, 0])
+            disegna_percorso(mappa_greedy_ucs, mat_3d, percorso_ucs, [0, 255, 0])
 
         # Se Greedy Manhattan ha trovato un percorso, coloriamo i pixel del percorso di blu sulla mappa finale
         if percorso_greedy_manhattan:
-            disegna_percorso(immagine_matrice_colorata, mat_3d, percorso_greedy_manhattan, [0, 0, 255])
+            disegna_percorso(mappa_greedy_ucs, mat_3d, percorso_greedy_manhattan, [0, 0, 255])
 
         # Se Greedy Euclideo ha trovato un percorso, coloriamo i pixel del percorso di viola sulla mappa finale
         if percorso_greedy_euclideo:
-            disegna_percorso(immagine_matrice_colorata, mat_3d, percorso_greedy_euclideo, [255, 0, 255])
+            disegna_percorso(mappa_greedy_ucs, mat_3d, percorso_greedy_euclideo, [255, 0, 255])
                 
-    fig, assi = plt.subplots(1, 2, figsize=(12, 6))
-    assi[0].imshow(cv2.cvtColor(img_originale, cv2.COLOR_BGR2RGB))
-    assi[0].set_title("1. Mappa Analizzata", fontsize=14)
-    assi[0].axis("off")
+    fig, assi = plt.subplots(2, 2, figsize=(16, 10))
+    assi[0,0].imshow(cv2.cvtColor(img_originale, cv2.COLOR_BGR2RGB))
+    assi[0,0].set_title("1. Mappa Analizzata", fontsize=14)
+    assi[0,0].axis("off")
 
-    assi[1].imshow(immagine_matrice_colorata)
-    assi[1].set_title(f"2. Stati Indipendenti ({DIMENSIONE_FINALE}x{DIMENSIONE_FINALE})", fontsize=14)
-    assi[1].axis("off")
+    assi[0,1].imshow(mappa_greedy_ucs)
+    assi[0,1].set_title(f"2. Mappa con UCS, Greedy Manhattan ed Euclideo ({DIMENSIONE_FINALE}x{DIMENSIONE_FINALE})", fontsize=14)
+    assi[0,1].axis("off")
+
+    assi[1,0].imshow(mappa_astar_man)
+    assi[1,0].set_title(f"3. Mappa con A* Manhattan ({DIMENSIONE_FINALE}x{DIMENSIONE_FINALE})", fontsize=14)
+    assi[1,0].axis("off")
+
+    assi[1,1].imshow(mappa_astar_eu)
+    assi[1,1].set_title(f"4. Mappa con A* Euclideo ({DIMENSIONE_FINALE}x{DIMENSIONE_FINALE})", fontsize=14)
+    assi[1,1].axis("off")
+
 
     plt.tight_layout()
     plt.show()

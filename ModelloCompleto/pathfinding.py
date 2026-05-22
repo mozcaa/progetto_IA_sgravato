@@ -59,21 +59,13 @@ class MappaProblem(Problem):
             if 0 <= nx < self.max_x and 0 <= ny < self.max_y:
                  valore_pixel = self.matrice[ny, nx, 1]
                  if valore_pixel != "X" and valore_pixel != "VUOTO" and valore_pixel != "G":
-                     mosse_valide.append((nx, ny))
+                      mosse_valide.append((nx, ny))
                  elif valore_pixel == "G":
-                     schianto = False
-                     while(valore_pixel == "G"):
+                      while valore_pixel == "G":
                          ny += d[1]
                          nx += d[0]
-                         if 0 <= nx < self.max_x and 0 <= ny < self.max_y: #controllo che non vada fuori dalla mappa
-                             valore_pixel = self.matrice[ny, nx, 1]
-                         else:      #altrimenti vuol dire che si è schiantato con un bordo della mappa
-                             schianto = True 
-                             break
-                     if valore_pixel == "X" or valore_pixel == "VUOTO" or schianto:
-                         mosse_valide.append((nx-d[0], ny-d[1])) #annullo l'ultima mossa se finisco in una x, vuoto o mi sono schiantato (impossibile perché prima ci sarebbe il confine)
-                     else:
-                         mosse_valide.append((nx, ny))
+                         valore_pixel = self.matrice[ny, nx, 1]
+                      mosse_valide.append((nx, ny))
         return mosse_valide
 
     def result(self, state, action):
@@ -105,9 +97,6 @@ class MappaProblem(Problem):
 
         if valore_arrivo.isdigit():
             costo_aggiuntivo = int(valore_arrivo)* self.fattore_ostile
-
-        elif valore_arrivo == "X":   # Non necessario in quanto già viene evitato per definizione su actions
-            costo_aggiuntivo = 999999
 
         elif valore_arrivo == "CONFINE":
             costo_aggiuntivo = self.costo_confine
