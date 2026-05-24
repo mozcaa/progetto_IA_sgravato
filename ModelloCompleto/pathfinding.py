@@ -123,7 +123,7 @@ class MappaProblem(Problem):
   #  def h3(self, node)
         """
         Euristica 3: Euristica personalizzata, mantiene ottimalità anche con aeroporti
-        Usata da A* Euclidea.
+        
         """
 
 
