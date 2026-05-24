@@ -222,7 +222,7 @@ if __name__ == "__main__":
      
         print("Colori percorsi:")
         print("A* Manhattan = rosso")
-        print("A* Euclideo = marrone")
+        print("A* Euclideo = rosa")
         print("UCS = verde")
         print("Greedy Manhattan = blu")
         print("Greedy Euclideo = viola/magenta")
@@ -235,9 +235,9 @@ if __name__ == "__main__":
         if percorso_astar_manhattan:
             disegna_percorso(mappa_astar_man, mat_3d, percorso_astar_manhattan, [255, 0, 0])
 
-        # Se A* Euclideo ha trovato un percorso, coloriamo i pixel del percorso di marrone sulla mappa finale        
+        # Se A* Euclideo ha trovato un percorso, coloriamo i pixel del percorso di rosa sulla mappa finale        
         if percorso_astar_euclideo:
-            disegna_percorso(mappa_astar_eu, mat_3d, percorso_astar_euclideo, [101, 67, 33] )
+            disegna_percorso(mappa_astar_eu, mat_3d, percorso_astar_euclideo, [255, 30, 115] )
         
         # Se UCS ha trovato un percorso, coloriamo i pixel del percorso di verde sulla mappa finale
         if percorso_ucs:
