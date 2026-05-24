@@ -111,14 +111,20 @@ class MappaProblem(Problem):
         x_corrente, y_corrente = node.state
         x_goal, y_goal = self.goal
 
-        return abs(x_corrente - x_goal) + abs(y_corrente - y_goal)
+        return (abs(x_corrente - x_goal) + abs(y_corrente - y_goal)) * self.costo_base
 
     def h2(self, node):
         """
         Euristica 2: distanza Euclidea.
+        Usata da A* Euclidea e Greedy Euclideo.
+        """
+        return math.dist(node.state, self.goal) * self.costo_base
+    
+  #  def h3(self, node)
+        """
+        Euristica 3: Euristica personalizzata, mantiene ottimalità anche con aeroporti
         Usata da A* Euclidea.
         """
-        return math.dist(node.state, self.goal)
 
 
 # --- FUNZIONE PRINCIPALE ---
