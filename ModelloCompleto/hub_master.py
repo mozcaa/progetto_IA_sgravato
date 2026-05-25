@@ -205,7 +205,7 @@ def disegna_percorso(immagine, matrice_3d, percorso, colore): # Funzione disegna
          elif (dist_x == 0 or dist_y == 0): # Opzione 3: scivolo su ghiaccio (linea dritta lunga)
              cv2.line(immagine, (x, y), (px, py), colore, 1)
 
-         px = x
+         px = x # salvo pixel attuali che diventeranno i precedenti sul giro di ciclo seguente
          py = y
 
 if __name__ == "__main__":
@@ -214,9 +214,9 @@ if __name__ == "__main__":
     img_originale, immagine_matrice_colorata, mat_3d, start, goal = avvia_hub(nome_foto)
     
     # ATTIVAZIONE PATHFINDING E RAPPRESENTAZIONE PERCORSO SU MAPPA
-    mappa_greedy_ucs= immagine_matrice_colorata.copy()
-    mappa_astar_man= immagine_matrice_colorata.copy()
-    mappa_astar_eu= immagine_matrice_colorata.copy()
+    mappa_ucs= immagine_matrice_colorata.copy()
+    mappa_astar= immagine_matrice_colorata.copy()
+    mappa_greedy= immagine_matrice_colorata.copy()
 
     if start and goal:
      
@@ -227,45 +227,53 @@ if __name__ == "__main__":
         print("Greedy Manhattan = blu")
         print("Greedy Euclideo = viola/magenta")
         # Passiamo la matrice e i punti scalati al file separato
-        percorso_ucs, percorso_astar_manhattan, percorso_astar_euclideo, percorso_greedy_manhattan, percorso_greedy_euclideo = pathfinding.esegui_confronto(mat_3d, start, goal)
+        percorso_ucs, percorso_astar_manhattan, percorso_astar_euclideo, percorso_astar_op, percorso_greedy_manhattan, percorso_greedy_euclideo, percorso_greedy_op = pathfinding.esegui_confronto(mat_3d, start, goal)
 
         
         # DISEGNARE IL PERCORSO SULLA MAPPA
         # Se A* Manhattan ha trovato un percorso, coloriamo i pixel del percorso di grigio sulla mappa finale
         if percorso_astar_manhattan:
-            disegna_percorso(mappa_astar_man, mat_3d, percorso_astar_manhattan, [255, 0, 0])
+            disegna_percorso(mappa_astar, mat_3d, percorso_astar_manhattan, [255, 0, 0])
 
         # Se A* Euclideo ha trovato un percorso, coloriamo i pixel del percorso di rosa sulla mappa finale        
         if percorso_astar_euclideo:
-            disegna_percorso(mappa_astar_eu, mat_3d, percorso_astar_euclideo, [255, 30, 115] )
+            disegna_percorso(mappa_astar, mat_3d, percorso_astar_euclideo, [255, 30, 115] )
+        
+        # Se A* OP ha trovato un percorso, coloriamo i pixel del percorso di rosa sulla mappa finale        
+        if percorso_astar_op:
+            disegna_percorso(mappa_astar, mat_3d, percorso_astar_op, [0, 255, 30] )
         
         # Se UCS ha trovato un percorso, coloriamo i pixel del percorso di verde sulla mappa finale
         if percorso_ucs:
-            disegna_percorso(mappa_greedy_ucs, mat_3d, percorso_ucs, [0, 255, 0])
+            disegna_percorso(mappa_ucs, mat_3d, percorso_ucs, [0, 255, 0])
 
         # Se Greedy Manhattan ha trovato un percorso, coloriamo i pixel del percorso di blu sulla mappa finale
         if percorso_greedy_manhattan:
-            disegna_percorso(mappa_greedy_ucs, mat_3d, percorso_greedy_manhattan, [0, 0, 255])
+            disegna_percorso(mappa_greedy, mat_3d, percorso_greedy_manhattan, [0, 0, 255])
 
         # Se Greedy Euclideo ha trovato un percorso, coloriamo i pixel del percorso di viola sulla mappa finale
         if percorso_greedy_euclideo:
-            disegna_percorso(mappa_greedy_ucs, mat_3d, percorso_greedy_euclideo, [255, 0, 255])
+            disegna_percorso(mappa_greedy, mat_3d, percorso_greedy_euclideo, [255, 0, 255])
+        
+        # Se Greedy OP ha trovato un percorso, coloriamo i pixel del percorso di rosa sulla mappa finale        
+        if percorso_greedy_op:
+            disegna_percorso(mappa_greedy, mat_3d, percorso_greedy_op, [0, 255, 30] )
                 
     fig, assi = plt.subplots(2, 2, figsize=(16, 10))
     assi[0,0].imshow(cv2.cvtColor(img_originale, cv2.COLOR_BGR2RGB))
     assi[0,0].set_title("1. Mappa Analizzata", fontsize=14)
     assi[0,0].axis("off")
 
-    assi[0,1].imshow(mappa_greedy_ucs)
-    assi[0,1].set_title(f"2. Mappa con UCS, Greedy Manhattan ed Euclideo ({DIMENSIONE_FINALE}x{DIMENSIONE_FINALE})", fontsize=14)
+    assi[0,1].imshow(mappa_ucs)
+    assi[0,1].set_title(f"2. Mappa con UCS ({DIMENSIONE_FINALE}x{DIMENSIONE_FINALE})", fontsize=14)
     assi[0,1].axis("off")
 
-    assi[1,0].imshow(mappa_astar_man)
-    assi[1,0].set_title(f"3. Mappa con A* Manhattan ({DIMENSIONE_FINALE}x{DIMENSIONE_FINALE})", fontsize=14)
+    assi[1,0].imshow(mappa_greedy)
+    assi[1,0].set_title(f"3. Mappa con Greedy con diverse euristiche ({DIMENSIONE_FINALE}x{DIMENSIONE_FINALE})", fontsize=14)
     assi[1,0].axis("off")
 
-    assi[1,1].imshow(mappa_astar_eu)
-    assi[1,1].set_title(f"4. Mappa con A* Euclideo ({DIMENSIONE_FINALE}x{DIMENSIONE_FINALE})", fontsize=14)
+    assi[1,1].imshow(mappa_astar)
+    assi[1,1].set_title(f"4. Mappa con A* con diverse euristiche ({DIMENSIONE_FINALE}x{DIMENSIONE_FINALE})", fontsize=14)
     assi[1,1].axis("off")
 
 

@@ -13,9 +13,10 @@ class MappaProblem(Problem):
         self.max_y = matrice_3d.shape[0]
         self.max_x = matrice_3d.shape[1]
         self.nodi_esplorati = 0
-        self.costo_confine= costo_confine
-        self.costo_base= costo_base
-        self.fattore_ostile= fattore_ostile
+        self.costo_confine = costo_confine
+        self.costo_base = costo_base
+        self.fattore_ostile = fattore_ostile
+        self.costo_biglietto = costo_base * 3
 
         self.aeroporti = {}    # Creo dizionario dove salvare per ogni territorio F il suo "Gate" (pixel del territorio dove si atterra in caso di volo da un altro aeroporto)
         for y in range(self.max_y):
@@ -87,7 +88,7 @@ class MappaProblem(Problem):
        
         if valore_partenza.startswith("F") and valore_arrivo.startswith("F") and valore_partenza != valore_arrivo: # valore_partenza!=valore_arrivo perché sennò entrerebbe anche per gli spostamenti dentro F
             # È un volo, non si considera la distanza, il costo è fisso (il "biglietto")
-            costo_movimento = self.costo_base * 3 # ho messo che il "biglietto" del volo costa 3 volte lo spostamento base (vedremo se modificarlo o anche richiederlo eventualmente)
+            costo_movimento = self.costo_biglietto
         else:
             # È un passo normale (distanza = 1) o una scivolata su ghiaccio (distanza > 1)
             distanza = abs(x - px) + abs(y - py)
@@ -108,10 +109,10 @@ class MappaProblem(Problem):
         Euristica 1: distanza di Manhattan.
         Usata da A* Manhattan e Greedy Manhattan.
         """
-        x_corrente, y_corrente = node.state
-        x_goal, y_goal = self.goal
+        x, y = node.state
+        gx, gy = self.goal
 
-        return (abs(x_corrente - x_goal) + abs(y_corrente - y_goal)) * self.costo_base
+        return (abs(x - gx) + abs(y - gy)) * self.costo_base
 
     def h2(self, node):
         """
@@ -120,12 +121,60 @@ class MappaProblem(Problem):
         """
         return math.dist(node.state, self.goal) * self.costo_base
     
-  #  def h3(self, node)
+    def h3(self, node):
         """
-        Euristica 3: Euristica personalizzata, mantiene ottimalità anche con aeroporti
-        
+        Euristica 3: Euristica OP (Manhattan personalizzata), mantiene ammissibilità anche con aeroporti
         """
+        x, y = node.state
+        gx, gy = self.goal
 
+        costo_camminata = (abs(x - gx) + abs(y - gy)) * self.costo_base
+        if len(self.aeroporti) < 2: # Se non ci sono almeno 2 aeroporti, il problema del volo non si pone, si restituisce la distanza di Manhattan (calcolata considerando il costo base)
+            return costo_camminata
+
+        # Distanza di manhattan tra il pixel attuale e l'aeroporto più vicino
+        distanza_attuale_aeroporto = min(abs(x - x_aeroporto) + abs(y - y_aeroporto) for x_aeroporto, y_aeroporto in self.aeroporti.values())
+        # Distanza di manhattan tra il goal e l'aeroporto più vicino ad esso
+        distanza_aeroporto_goal = min(abs(x_aeroporto - gx) + abs(y_aeroporto - gy) for x_aeroporto, y_aeroporto in self.aeroporti.values())
+
+        # se si sceglie di prendere il volo il costo è la somma delle due distanze calcolate in precedenza (moltiplicate per costo base) + il costo del biglietto
+        costo_volo = (distanza_attuale_aeroporto + distanza_aeroporto_goal) * self.costo_base + self.costo_biglietto
+
+        return min(costo_camminata, costo_volo)
+
+def esegui_ricerca(nome, algoritmo, problema, euristica=None):
+    """
+    Esegue un algoritmo di ricerca, fornisce i tempi, stampa i dati
+    e restituisce il percorso trovato.
+    """
+
+    problema.nodi_esplorati = 0 # reset contatore nodi esplorati
+
+    print(f"\nAvvio Ricerca: {nome}")
+    start_time = time.time()
+
+    if euristica: # se c'è l'euristica la passo sennò no
+         nodo_finale = algoritmo(problema, euristica)
+    else:
+         nodo_finale = algoritmo(problema)
+
+    tempo_impiegato = time.time() - start_time
+    nodi_esplorati = problema.nodi_esplorati
+    
+    # Stampa dei risultati
+    if nodo_finale:
+        print(f"Percorso {nome} trovato!")
+        print(f" -> Costo: {nodo_finale.path_cost}")
+        print(f" -> Tempo: {tempo_impiegato:.2f} secondi")
+        print(f" -> Nodi Esplorati: {nodi_esplorati:,}")
+        percorso = nodo_finale.solution()
+    else:
+        print(f"{nome} fallito: percorso non trovato.")
+        percorso = None
+        
+    problema.nodi_esplorati = 0 # reset di sicurezza finale
+    
+    return percorso
 
 # --- FUNZIONE PRINCIPALE ---
 def esegui_confronto(matrice_3d, start_scalato, goal_scalato):
@@ -173,107 +222,28 @@ def esegui_confronto(matrice_3d, start_scalato, goal_scalato):
 
     problema = MappaProblem(start_scalato, goal_scalato, matrice_3d, confine, base, ostile)
 
-    # 1. Uniform Cost Search
-    print("\nAvvio Ricerca NON Informata: Uniform-Cost Search...")
-    start_time = time.time()
+# *** ESECUZIONE ALGORITMI ***
 
-    nodo_ucs = uniform_cost_search(problema)
+    # Uniform Cost Search (Senza euristica!)
+    percorso_ucs = esegui_ricerca("Uniform Cost Search", uniform_cost_search, problema) 
 
-    tempo_ucs = time.time() - start_time
-    numero_nodi_ucs = problema.nodi_esplorati
+    # A* con Manhattan
+    percorso_astar1 = esegui_ricerca("A* Manhattan", astar_search, problema, problema.h1)
 
-    if nodo_ucs:
-        print("Percorso UCS trovato!")
-        print(f" -> Costo: {nodo_ucs.path_cost}")
-        print(f" -> Tempo: {tempo_ucs:.2f} secondi")
-        print(f" -> Nodi Esplorati: {numero_nodi_ucs:,}")
-        percorso_ucs = nodo_ucs.solution()
-    else:
-        print("UCS fallita: percorso non trovato.")
-        percorso_ucs = None
+    # A* con Euclidea
+    percorso_astar2 = esegui_ricerca("A* Euclidea", astar_search, problema, problema.h2) 
 
-    problema.nodi_esplorati = 0
+    # A* con euristica OP
+    percorso_astar3 = esegui_ricerca("A* OP", astar_search, problema, problema.h3) 
 
-    # 2. A* con Manhattan
-    print("\nAvvio Ricerca Informata: A* con distanza di Manhattan...")
-    start_time = time.time()
+    # Greedy con Manhattan
+    percorso_greedy1 = esegui_ricerca("Greedy Manhattan", greedy_best_first_graph_search, problema, problema.h1)
 
-    nodo_astar1 = astar_search(problema, problema.h1)
+    # Greedy con Euclidea
+    percorso_greedy2 = esegui_ricerca("Greedy Euclideo", greedy_best_first_graph_search, problema, problema.h2)   
 
-    tempo_astar1 = time.time() - start_time
-    numero_nodi_astar1 = problema.nodi_esplorati
-
-    if nodo_astar1:
-        print("Percorso A* Manhattan trovato!")
-        print(f" -> Costo: {nodo_astar1.path_cost}")
-        print(f" -> Tempo: {tempo_astar1:.2f} secondi")
-        print(f" -> Nodi Esplorati: {numero_nodi_astar1:,}")
-        percorso_astar1 = nodo_astar1.solution()
-    else:
-        print("A* Manhattan fallito: percorso non trovato.")
-        percorso_astar1 = None
-
-    problema.nodi_esplorati = 0
-
-    # 3. A* con Euclidea
-    print("\nAvvio Ricerca Informata: A* con distanza Euclidea...")
-    start_time = time.time()
-
-    nodo_astar2 = astar_search(problema, problema.h2)
-
-    tempo_astar2 = time.time() - start_time
-    numero_nodi_astar2 = problema.nodi_esplorati
-
-    if nodo_astar2:
-        print("Percorso A* Euclidea trovato!")
-        print(f" -> Costo: {nodo_astar2.path_cost}")
-        print(f" -> Tempo: {tempo_astar2:.2f} secondi")
-        print(f" -> Nodi Esplorati: {numero_nodi_astar2:,}")
-        percorso_astar2 = nodo_astar2.solution()
-    else:
-        print("A* Euclidea fallito: percorso non trovato.")
-        percorso_astar2 = None
-
-    problema.nodi_esplorati = 0
-
-    # 4. Greedy Best First Search con Manhattan
-    print("\nAvvio Ricerca Informata: Greedy Best First Search con Manhattan...")
-    start_time = time.time()
-
-    nodo_greedy1 = greedy_best_first_graph_search(problema, problema.h1)
-
-    tempo_greedy1 = time.time() - start_time
-    numero_nodi_greedy1 = problema.nodi_esplorati
-
-    if nodo_greedy1:
-        print("Percorso Greedy Manhattan trovato!")
-        print(f" -> Costo: {nodo_greedy1.path_cost}")
-        print(f" -> Tempo: {tempo_greedy1:.2f} secondi")
-        print(f" -> Nodi Esplorati: {numero_nodi_greedy1:,}")
-        percorso_greedy1 = nodo_greedy1.solution()
-    else:
-        print("Greedy Best First Search Manhattan fallito: percorso non trovato.")
-        percorso_greedy1 = None
-
-    problema.nodi_esplorati = 0
-
-    # 5. Greedy Best First Search con Euclidea
-    print("\nAvvio Ricerca Informata: Greedy Best First Search con distanza Euclidea...")
-    start_time = time.time()
-
-    nodo_greedy2 = greedy_best_first_graph_search(problema, problema.h2)
-
-    tempo_greedy2 = time.time() - start_time
-    numero_nodi_greedy2 = problema.nodi_esplorati
-
-    if nodo_greedy2:
-        print("Percorso Greedy Euclidea trovato!")
-        print(f" -> Costo: {nodo_greedy2.path_cost}")
-        print(f" -> Tempo: {tempo_greedy2:.2f} secondi")
-        print(f" -> Nodi Esplorati: {numero_nodi_greedy2:,}")
-        percorso_greedy2 = nodo_greedy2.solution()
-    else:
-        print("Greedy Best First Search Euclidea fallito: percorso non trovato.")
-        percorso_greedy2 = None
-
-    return percorso_ucs, percorso_astar1, percorso_astar2, percorso_greedy1, percorso_greedy2
+    # Greedy con euristica OP
+    percorso_greedy3 = esegui_ricerca("Greedy OP", greedy_best_first_graph_search, problema, problema.h3)
+    
+    
+    return percorso_ucs, percorso_astar1, percorso_astar2, percorso_astar3, percorso_greedy1, percorso_greedy2, percorso_greedy3
