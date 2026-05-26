@@ -113,11 +113,6 @@ print("Shape test dopo reshape CNN:", X_test.shape)
 model = keras.Sequential()
 model.add(layers.Input(shape=(IMG_SIZE, IMG_SIZE, 1)))
 
-# --- NUOVO: BLOCCO DATA AUGMENTATION ---
-# Applichiamo distorsioni casuali ma leggere, per non trasformare un '6' in un '9' capovolto!
-#model.add(layers.RandomRotation(factor=0.05)) # Rotazione casuale fino a ~18 gradi
-#model.add(layers.RandomZoom(height_factor=0.1, width_factor=0.1)) # Zoom in/out fino al 10%
-#model.add(layers.RandomTranslation(height_factor=0.1, width_factor=0.1)) # Spostamento laterale/verticale del 10%
 
 # Blocchi Convoluzionali
 model.add(layers.Conv2D(32, kernel_size=(3, 3), activation="relu"))
