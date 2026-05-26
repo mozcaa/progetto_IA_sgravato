@@ -125,13 +125,11 @@ def avvia_hub(image_path):
     for y in range(DIMENSIONE_FINALE):
         for x in range(DIMENSIONE_FINALE):
             if confini_ridimensionati[y, x] > 127:
-                matrice_3d[y, x, 0] = 2
                 matrice_3d[y, x, 1] = "CONFINE"
                 immagine_matrice_colorata[y, x] = [0, 0, 0]
             else:
                 id_territorio_corrente = territori_ridimensionati[y, x]
                 if id_territorio_corrente > 0:
-                    matrice_3d[y, x, 0] = 1
                     matrice_3d[y, x, 1] = label_per_id_territorio[id_territorio_corrente]
 
                     # Associo un identificativo ad ogni territorio F
@@ -142,83 +140,86 @@ def avvia_hub(image_path):
                     colore_scelto = COLORI_PER_LABEL[label_per_id_territorio[id_territorio_corrente]]
                     immagine_matrice_colorata[y, x] = colore_scelto
                 else:
-                    matrice_3d[y, x, 0] = 0
                     matrice_3d[y, x, 1] = "VUOTO"
                     immagine_matrice_colorata[y, x] = [255, 255, 255]
 
-    # --- SCALATURA E RICERCA START/GOAL ---
+    # ***** SCALATURA E RICERCA START/GOAL/GATE *****
     
-    # 1. Calcoliamo di quanto abbiamo ingrandito la mappa, quindi le scale che ci servono
+    # Calcoliamo di quanto abbiamo ingrandito la mappa, quindi le scale che ci servono
     altezza_originale, larghezza_originale = img_binaria.shape
     scala_x = DIMENSIONE_FINALE / larghezza_originale
     scala_y = DIMENSIONE_FINALE / altezza_originale
 
-    start_scalato = None
-    goal_scalato = None
-
-    # 2. Scorriamo i caratteri trovati, cerchiamo C e W
+    # Inizializziamo il livello 0 con una stringa vuota per tenerlo pulito
+    matrice_3d[:, :, 0] = ""
+    trovato_c = False    # variabile per verificare che trovo C
+    trovato_w = False   # variabile per verificare che trovo W
+    # Scorriamo i caratteri trovati, cerchiamo C e W
     for char in caratteri_riconosciuti:
-        cx_orig, cy_orig = char['centro']
-        
-        if char['label'] == 'C':
-            start_scalato = (int(cx_orig * scala_x), int(cy_orig * scala_y)) #trovata la C salvo le coordinate scalate del suo baricentro
-        elif char['label'] == 'W':
-            goal_scalato = (int(cx_orig * scala_x), int(cy_orig * scala_y)) #trovata la W salvo le coordinate scalate del suo baricentro
+        cx_orig, cy_orig = char['centro'] # salvo coordinate baricentro carattere
+        cx_scal = int(cx_orig * scala_x) # scalo coordinata x baricentro carattere
+        cy_scal = int(cy_orig * scala_y) # scalo coordinata y baricentro carattere
 
-    if not start_scalato or not goal_scalato:
+        if matrice_3d[cy_scal, cx_scal, 1] != "CONFINE": # controllo per verificare che con la scalatura qualcosa sia finito sul confine (altamente improbabile, ma non impossibile)
+            if char['label'] == 'C': 
+                matrice_3d[cy_scal, cx_scal, 0] = 'C' # trovata la C salvo il carattere nelle coordinate del suo baricentro su livello 0 matrice_3d
+                trovato_c = True
+                cv2.circle(immagine_matrice_colorata, (cx_scal, cy_scal), 3, (0, 255, 0), -1) # metto un punto verde sulla mappa colorata sulla posizione di C
+
+            elif char['label'] == 'W':
+                matrice_3d[cy_scal, cx_scal, 0] = 'W' # trovata la W salvo il carattere nelle coordinate del suo baricentro su livello 0 matrice_3d
+                trovato_w = True
+                cv2.circle(immagine_matrice_colorata, (cx_scal, cy_scal), 3, (255, 0, 0), -1) # metto un punto rosso sulla mappa colorata sulla posizione di W
+
+            elif char['label'] == 'F': # per ogni F trovata, salvo "GATE" nelle coordinate del suo baricentro su livello 0 matrice_3d
+                matrice_3d[cy_scal, cx_scal, 0] = "GATE"
+                 
+    if not trovato_c or not trovato_w:
         print("ATTENZIONE: Commence (C) o Win (W) non trovati!")
     
-    if start_scalato: #metto un punto verde sulla mappa colorata sulla posizione di C
-        # cv2.circle(immagine, (x, y), raggio, colore_rgb, spessore)
-        # Lo spessore -1 riempie completamente il cerchio
-        cv2.circle(immagine_matrice_colorata, start_scalato, 3, (0, 255, 0), -1) 
-
-    if goal_scalato: #metto un punto rosso sulla mappa colorata sulla posizione di W
-        cv2.circle(immagine_matrice_colorata, goal_scalato, 3, (255, 0, 0), -1)
-
     cv2.imwrite("step3_matrice_colorata.png", cv2.cvtColor(immagine_matrice_colorata, cv2.COLOR_RGB2BGR))
     print("- Salvato 'step3_matrice_colorata.png'")
     print("--- ELABORAZIONE COMPLETATA ---")
 
-    return img_color, immagine_matrice_colorata, matrice_3d, start_scalato, goal_scalato
+    return img_color, immagine_matrice_colorata, matrice_3d, trovato_w, trovato_c
 
 def disegna_percorso(immagine, matrice_3d, percorso, colore): # Funzione disegna percorso algoritmo
     px, py = percorso[0]
     immagine[py, px] = colore   # Coloro punto di partenza
 
     for i in range(1,len(percorso)):
-         x, y = percorso[i]
-         dist_x = abs(x-px) # Distanza tra coordinata x attuale e precedente
-         dist_y = abs(y-py) # Distanza tra coordinata y attuale e precedente
-         dist_tot = dist_x + dist_y # Distanza totale
-         valore_partenza = str(matrice_3d[py, px, 1])
-         valore_arrivo = str(matrice_3d[y, x, 1])
+        x, y = percorso[i]
+        dist_x = abs(x-px) # Distanza tra coordinata x attuale e precedente
+        dist_y = abs(y-py) # Distanza tra coordinata y attuale e precedente
+        dist_tot = dist_x + dist_y # Distanza totale
+        valore_partenza = str(matrice_3d[py, px, 1])
+        valore_arrivo = str(matrice_3d[y, x, 1])
 
-         if dist_tot == 1:  # Opzione 1: passo tra due caselle 
-             immagine[y, x] = colore
+        if dist_tot == 1:  # Opzione 1: passo tra due caselle 
+            immagine[y, x] = colore
 
-         elif valore_partenza.startswith("F") and valore_arrivo.startswith("F"):  # Opzione 2: salto tra due aeroporti (volo)
-             cv2.circle(immagine, (px, py), 3, colore, 1)
-             cv2.line(immagine, (x, y), (px, py), colore, 1)
-             cv2.circle(immagine, (x, y), 3, colore, 1)
+        elif valore_partenza.startswith("F") and valore_arrivo.startswith("F"):  # Opzione 2: salto tra due aeroporti (volo)
+            cv2.circle(immagine, (px, py), 3, colore, 1)
+            cv2.line(immagine, (x, y), (px, py), colore, 1)
+            cv2.circle(immagine, (x, y), 3, colore, 1)
 
-         elif (dist_x == 0 or dist_y == 0): # Opzione 3: scivolo su ghiaccio (linea dritta lunga)
-             cv2.line(immagine, (x, y), (px, py), colore, 1)
+        elif (dist_x == 0 or dist_y == 0): # Opzione 3: scivolo su ghiaccio (linea dritta lunga)
+            cv2.line(immagine, (x, y), (px, py), colore, 1)
 
-         px = x # salvo pixel attuali che diventeranno i precedenti sul giro di ciclo seguente
-         py = y
+        px = x # salvo pixel attuali che diventeranno i precedenti sul giro di ciclo seguente
+        py = y
 
 if __name__ == "__main__":
-    nome_foto = "mappe/mappa15.jpg"  # Controlla sempre che il nome combaci!
+    nome_foto = "mappe/mappa_20.jpg"  # Controlla sempre che il nome combaci!
 
-    img_originale, immagine_matrice_colorata, mat_3d, start, goal = avvia_hub(nome_foto)
+    img_originale, immagine_matrice_colorata, mat_3d, c, w = avvia_hub(nome_foto) #c e w bool per verificare che ho trovato c e w
     
     # ATTIVAZIONE PATHFINDING E RAPPRESENTAZIONE PERCORSO SU MAPPA
     mappa_ucs= immagine_matrice_colorata.copy()
     mappa_astar= immagine_matrice_colorata.copy()
     mappa_greedy= immagine_matrice_colorata.copy()
 
-    if start and goal:
+    if c and w:
      
         print("Colori percorsi:")
         print("A* Manhattan = rosso")
@@ -227,37 +228,38 @@ if __name__ == "__main__":
         print("Greedy Manhattan = blu")
         print("Greedy Euclideo = viola/magenta")
         # Passiamo la matrice e i punti scalati al file separato
-        percorso_ucs, percorso_astar_manhattan, percorso_astar_euclideo, percorso_astar_op, percorso_greedy_manhattan, percorso_greedy_euclideo, percorso_greedy_op = pathfinding.esegui_confronto(mat_3d, start, goal)
+        percorso_ucs, percorso_astar_manhattan, percorso_astar_euclideo, percorso_astar_op, percorso_greedy_manhattan, percorso_greedy_euclideo, percorso_greedy_op = pathfinding.esegui_confronto(mat_3d)
 
         
         # DISEGNARE IL PERCORSO SULLA MAPPA
-        # Se A* Manhattan ha trovato un percorso, coloriamo i pixel del percorso di grigio sulla mappa finale
+
+        # Se UCS ha trovato un percorso, coloriamo i pixel del percorso di blu sulla mappa finale
+        if percorso_ucs:
+            disegna_percorso(mappa_ucs, mat_3d, percorso_ucs, [0, 0, 255])
+
+        # Se A* Manhattan ha trovato un percorso, coloriamo i pixel del percorso di rosso sulla mappa finale
         if percorso_astar_manhattan:
             disegna_percorso(mappa_astar, mat_3d, percorso_astar_manhattan, [255, 0, 0])
 
-        # Se A* Euclideo ha trovato un percorso, coloriamo i pixel del percorso di rosa sulla mappa finale        
+        # Se A* Euclideo ha trovato un percorso, coloriamo i pixel del percorso di verde sulla mappa finale        
         if percorso_astar_euclideo:
-            disegna_percorso(mappa_astar, mat_3d, percorso_astar_euclideo, [255, 30, 115] )
+            disegna_percorso(mappa_astar, mat_3d, percorso_astar_euclideo, [0, 255, 0] )
         
-        # Se A* OP ha trovato un percorso, coloriamo i pixel del percorso di rosa sulla mappa finale        
+        # Se A* OP ha trovato un percorso, coloriamo i pixel del percorso di blu sulla mappa finale        
         if percorso_astar_op:
-            disegna_percorso(mappa_astar, mat_3d, percorso_astar_op, [0, 255, 30] )
-        
-        # Se UCS ha trovato un percorso, coloriamo i pixel del percorso di verde sulla mappa finale
-        if percorso_ucs:
-            disegna_percorso(mappa_ucs, mat_3d, percorso_ucs, [0, 255, 0])
+            disegna_percorso(mappa_astar, mat_3d, percorso_astar_op, [0, 0, 255] )
 
-        # Se Greedy Manhattan ha trovato un percorso, coloriamo i pixel del percorso di blu sulla mappa finale
+        # Se Greedy Manhattan ha trovato un percorso, coloriamo i pixel del percorso di rosso sulla mappa finale
         if percorso_greedy_manhattan:
-            disegna_percorso(mappa_greedy, mat_3d, percorso_greedy_manhattan, [0, 0, 255])
+            disegna_percorso(mappa_greedy, mat_3d, percorso_greedy_manhattan, [255, 0, 0])
 
-        # Se Greedy Euclideo ha trovato un percorso, coloriamo i pixel del percorso di viola sulla mappa finale
+        # Se Greedy Euclideo ha trovato un percorso, coloriamo i pixel del percorso di verde sulla mappa finale
         if percorso_greedy_euclideo:
-            disegna_percorso(mappa_greedy, mat_3d, percorso_greedy_euclideo, [255, 0, 255])
+            disegna_percorso(mappa_greedy, mat_3d, percorso_greedy_euclideo, [0, 255, 0])
         
-        # Se Greedy OP ha trovato un percorso, coloriamo i pixel del percorso di rosa sulla mappa finale        
+        # Se Greedy OP ha trovato un percorso, coloriamo i pixel del percorso di blu sulla mappa finale        
         if percorso_greedy_op:
-            disegna_percorso(mappa_greedy, mat_3d, percorso_greedy_op, [0, 255, 30] )
+            disegna_percorso(mappa_greedy, mat_3d, percorso_greedy_op, [0, 0, 255] )
                 
     fig, assi = plt.subplots(2, 2, figsize=(16, 10))
     assi[0,0].imshow(cv2.cvtColor(img_originale, cv2.COLOR_BGR2RGB))

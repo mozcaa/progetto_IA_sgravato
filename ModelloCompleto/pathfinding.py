@@ -4,11 +4,10 @@ from aima import Problem, uniform_cost_search, astar_search, greedy_best_first_g
 
 
 class MappaProblem(Problem):
-    def __init__(self, start, goal, matrice_3d, costo_confine, costo_base, fattore_ostile):
+    def __init__(self, matrice_3d, costo_confine, costo_base, fattore_ostile):
         """
         start e goal devono essere tuple (X, Y) già scalate.
         """
-        super().__init__(start, goal)
         self.matrice = matrice_3d
         self.max_y = matrice_3d.shape[0]
         self.max_x = matrice_3d.shape[1]
@@ -18,13 +17,22 @@ class MappaProblem(Problem):
         self.fattore_ostile = fattore_ostile
         self.costo_biglietto = costo_base * 3
 
-        self.aeroporti = {}    # Creo dizionario dove salvare per ogni territorio F il suo "Gate" (pixel del territorio dove si atterra in caso di volo da un altro aeroporto)
+        start = None
+        goal = None
+        self.aeroporti = {}    # Creo dizionario dove salvare per ogni territorio F il suo "Gate"
+
+        # Ciclo per mappare il mondo (trova start, goal, gate)
         for y in range(self.max_y):
             for x in range(self.max_x):
                 valore_casella = str(self.matrice[y, x, 1])  # Lo leggo come stringa per poter usare startswith
-                if valore_casella.startswith("F"):
-                    if valore_casella not in self.aeroporti:  # Se non ho ancora salvato un Gate per questo aeroporto  
-                        self.aeroporti[valore_casella] = (x, y) # Salvo questo pixel come suo Gate Ufficiale! (sarà il pixel più a Nord-Ovest di ogni territorio F)
+                trova_baricentri = self.matrice[y, x, 0]
+                if trova_baricentri == "C":
+                    start = (x, y)
+                elif trova_baricentri == "W":
+                    goal = (x, y) 
+                elif valore_casella.startswith("F") and trova_baricentri == "GATE":
+                    self.aeroporti[valore_casella] = (x, y) # Salvo questo pixel come suo gate ufficiale
+        super().__init__(start, goal)
 
 
     def actions(self, state):
@@ -38,8 +46,8 @@ class MappaProblem(Problem):
 
         # --- LOGICA VOLI AEROPORTO ---
         valore_corrente = str(self.matrice[y, x, 1])
-        
-        if valore_corrente.startswith("F"):
+        # Controllo se sono in un territorio F e se le mie coordinate (x,y) corrispondono a quelle del gate ufficiale di questo aeroporto.
+        if valore_corrente.startswith("F") and (x, y) == self.aeroporti.get(valore_corrente):
             # Scorro il dizionario dei Gate ufficiali (.items() tira fuori chiave e valore)
             for id_destinazione, (nx, ny) in self.aeroporti.items():
                 # Se il Gate di destinazione è di un aeroporto diverso da quello attuale
@@ -177,7 +185,7 @@ def esegui_ricerca(nome, algoritmo, problema, euristica=None):
     return percorso
 
 # --- FUNZIONE PRINCIPALE ---
-def esegui_confronto(matrice_3d, start_scalato, goal_scalato):
+def esegui_confronto(matrice_3d):
     print("\nInizializzazione Problema AIMA...")
 
 
@@ -220,9 +228,9 @@ def esegui_confronto(matrice_3d, start_scalato, goal_scalato):
         else:
             break
 
-    problema = MappaProblem(start_scalato, goal_scalato, matrice_3d, confine, base, ostile)
+    problema = MappaProblem(matrice_3d, confine, base, ostile)
 
-# *** ESECUZIONE ALGORITMI ***
+    # *** ESECUZIONE ALGORITMI ***
 
     # Uniform Cost Search (Senza euristica!)
     percorso_ucs = esegui_ricerca("Uniform Cost Search", uniform_cost_search, problema) 
