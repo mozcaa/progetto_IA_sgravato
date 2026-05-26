@@ -4,7 +4,7 @@ from aima import Problem, uniform_cost_search, astar_search, greedy_best_first_g
 
 
 class MappaProblem(Problem):
-    def __init__(self, matrice_3d, costo_confine, costo_base, fattore_ostile):
+    def __init__(self, matrice_3d, costo_confine, costo_base, fattore_ostile, costo_volo):
         """
         start e goal devono essere tuple (X, Y) già scalate.
         """
@@ -15,7 +15,7 @@ class MappaProblem(Problem):
         self.costo_confine = costo_confine
         self.costo_base = costo_base
         self.fattore_ostile = fattore_ostile
-        self.costo_biglietto = costo_base * 3
+        self.costo_biglietto = costo_base * costo_volo
 
         start = None
         goal = None
@@ -228,7 +228,21 @@ def esegui_confronto(matrice_3d):
         else:
             break
 
-    problema = MappaProblem(matrice_3d, confine, base, ostile)
+    while True:
+        try:
+            costo_volo = float(input("Quanto costa usare l'aereo? Il fattore verrà moltiplicato per il costo base: ").replace(",", "."))
+        except ValueError:
+            print("Costo non valido")
+            continue
+
+        if costo_volo < 1:
+            print("Costo non valido, minimo 1")
+            continue
+        else:
+            break
+
+
+    problema = MappaProblem(matrice_3d, confine, base, ostile, costo_volo)
 
     # *** ESECUZIONE ALGORITMI ***
 
