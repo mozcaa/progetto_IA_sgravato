@@ -83,18 +83,18 @@ def avvia_hub(image_path):
     cv2.imwrite("step2_solo_confini.png", cv2.bitwise_not(step2_visiva))
     print("- Salvato 'step2_solo_confini.png'")
 
-    # --- NUOVA LOGICA DI DIVISIONE STATI ---
-    # 1. Invertiamo i confini: i muri diventano neri (0), e gli spazi vuoti bianchi (255)
+    # ***** NUOVA LOGICA DI DIVISIONE STATI *****
+    #  Invertiamo i confini: i muri diventano neri (0), e gli spazi vuoti bianchi (255)
     aree_senza_confini = cv2.bitwise_not(maschera_confini)
 
-    # 2. Troviamo tutte le "pozze" separate (gli stati)
+    # Troviamo tutte le "pozze" separate (gli stati)
     numero_aree, labels_aree, stats_aree, centroidi_aree = cv2.connectedComponentsWithStats(aree_senza_confini, connectivity=4)
 
     matrice_id_territori = np.zeros_like(img_binaria, dtype=np.int32)
     label_per_id_territorio = {}
     id_territorio = 1
 
-    # 3. L'oceano (lo spazio esterno fuori dalla mappa) tocca sicuramente l'angolo (0,0)
+    # L'oceano (lo spazio esterno fuori dalla mappa) tocca sicuramente l'angolo (0,0)
     label_esterno = labels_aree[0, 0]
 
     for i in range(1, numero_aree):
