@@ -1,9 +1,9 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (MiKTeX 26.5) (preloaded format=pdflatex 2026.5.18)  19 MAY 2026 22:34
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (MiKTeX 26.5) (preloaded format=pdflatex 2026.5.18)  27 MAY 2026 19:06
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
-**./document.tex
-(document.tex
+**"./Tesi IA.tex"
+(Tesi IA.tex
 LaTeX2e <2025-11-01>
 L3 programming layer <2026-03-20>
 (C:\Users\romeo\AppData\Local\Programs\MiKTeX\tex/latex/base\article.cls
@@ -412,8 +412,8 @@ Package: booktabs 2020/01/12 v1.61803398 Publication quality tables
 tex.def
 File: l3backend-pdftex.def 2026-02-18 L3 backend support: PDF output (pdfTeX)
 \l__color_backend_stack_int=\count327
-) (document.aux)
-\openout1 = `document.aux'.
+) (Tesi IA.aux)
+\openout1 = `"Tesi IA.aux"'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 63.
 LaTeX Font Info:    ... okay on input line 63.
@@ -496,15 +496,14 @@ File: epstopdf-sys.cfg 2021/03/18 v2.0 Configuration of epstopdf for MiKTeX
 * (1in=72.27pt=25.4mm, 1cm=28.453pt)
 
 Package hyperref Info: Link coloring OFF on input line 63.
-(document.out) (document.out)
+(Tesi IA.out) (Tesi IA.out)
 \@outlinefile=\write3
-\openout3 = `document.out'.
+\openout3 = `"Tesi IA.out"'.
 
 \c@lstlisting=\count334
  [1
 
-{C:/Users/romeo/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}] (document.to
-c
+{C:/Users/romeo/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}] (Tesi IA.toc
 LaTeX Font Info:    Trying to load font information for U+msa on input line 4.
 
 (C:\Users\romeo\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\umsa.fd
@@ -516,7 +515,7 @@ LaTeX Font Info:    Trying to load font information for U+msb on input line 4.
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 ))
 \tf@toc=\write4
-\openout4 = `document.toc'.
+\openout4 = `"Tesi IA.toc"'.
 
 
 pdfTeX warning (ext4): destination with the same identifier (name{page.1}) has 
@@ -649,22 +648,22 @@ i-fi-ca-zio-ne ba-sa-ta sul-la fun-zio-ne \T1/cmtt/m/n/12 connectedComponents\T
 1/cmr/m/n/12 ,
  []
 
-[20] (document.aux)
+[20] (Tesi IA.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2026-03-20>
  ***********
-Package rerunfilecheck Info: File `document.out' has not changed.
+Package rerunfilecheck Info: File `"Tesi IA".out' has not changed.
 (rerunfilecheck)             Checksum: 8C1B324B6D786A87092557D7764914C9;10468.
  ) 
 Here is how much of TeX's memory you used:
- 14253 strings out of 467691
- 216938 string characters out of 5414987
- 949048 words of memory out of 5000000
- 42991 multiletter control sequences out of 15000+600000
+ 14257 strings out of 467691
+ 217000 string characters out of 5414987
+ 949050 words of memory out of 5000000
+ 42994 multiletter control sequences out of 15000+600000
  646601 words of font info for 82 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 75i,12n,79p,1070b,1485s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,12n,79p,1071b,1485s stack positions out of 10000i,1000n,20000p,200000b,200000s
  <C:\Users\romeo\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecit
 1095.pk> <C:\Users\romeo\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi60
 0\ectt1095.pk> <C:\Users\romeo\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec
@@ -692,9 +691,9 @@ AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Use
 rs/romeo/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy8.pfb
 ><C:/Users/romeo/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/symb
 ols/msbm10.pfb>
-Output written on document.pdf (21 pages, 396691 bytes).
+Output written on "Tesi IA.pdf" (21 pages, 396011 bytes).
 PDF statistics:
- 1065 PDF objects out of 1200 (max. 8388607)
+ 1063 PDF objects out of 1200 (max. 8388607)
  138 named destinations out of 1000 (max. 500000)
  281 words of extra memory for PDF output out of 10000 (max. 10000000)
 
