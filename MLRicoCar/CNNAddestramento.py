@@ -4,7 +4,6 @@ import gzip
 import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image
-from sklearn.model_selection import train_test_split
 import kagglehub
 from tensorflow import keras
 from tensorflow.keras import layers
