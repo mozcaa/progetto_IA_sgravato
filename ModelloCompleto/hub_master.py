@@ -222,12 +222,14 @@ if __name__ == "__main__":
     if c and w:
      
         print("Colori percorsi:")
-        print("A* Manhattan = rosso")
-        print("A* Euclideo = rosa")
         print("UCS = verde")
-        print("Greedy Manhattan = blu")
-        print("Greedy Euclideo = viola/magenta")
-        # Passiamo la matrice e i punti scalati al file separato
+        print("A* Manhattan = rosso")
+        print("A* Euclideo = verde")
+        print("A* OP = blu")
+        print("Greedy Manhattan = rosso")
+        print("Greedy Euclideo = verde")
+        print("Greedy OP = blu")
+        # Passiamo la matrice (contenente tutti i dati per il pathfinding) al file separato
         percorso_ucs, percorso_astar_manhattan, percorso_astar_euclideo, percorso_astar_op, percorso_greedy_manhattan, percorso_greedy_euclideo, percorso_greedy_op = pathfinding.esegui_confronto(mat_3d)
 
         
