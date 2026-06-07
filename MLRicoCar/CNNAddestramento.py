@@ -132,7 +132,7 @@ model.summary()
 
 # Parametri di training
 batch_size = 128
-epochs = 20
+epochs = 30
 
 # Compile
 model.compile(
@@ -144,7 +144,7 @@ model.compile(
 # Early stopping: ferma il training se la validation loss non migliora più
 early_stopping = keras.callbacks.EarlyStopping(
     monitor="val_loss",
-    patience=3,
+    patience=6,
     restore_best_weights=True
 )
 
