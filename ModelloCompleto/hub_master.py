@@ -8,8 +8,8 @@ import pathfinding
 
 DIMENSIONE_FINALE = 300
 
-AREA_RUMORE = 400
-AREA_CONFINE = 15000
+AREA_RUMORE = 300
+AREA_CONFINE = 5000
 
 COLORI_PER_LABEL = { #sfumature di rosso
     "1": [255, 235, 235], # Rosa chiarissimo
@@ -53,18 +53,23 @@ def avvia_hub(image_path):
     print(f"\n--- AVVIO HUB CENTRALE ---")
 
     img_color, img_binaria = modulo_digitalizzatore.ottieni_matrice_binaria(image_path)
+    
+    alt, lar = img_binaria.shape
+    print(f"Area img_binaria = {alt*lar}")
 
     step1_visiva = cv2.resize(img_binaria, (DIMENSIONE_FINALE, DIMENSIONE_FINALE), interpolation=cv2.INTER_NEAREST)
     cv2.imwrite("step1_matrice_completa.png", cv2.bitwise_not(step1_visiva))
     print("- Salvato 'step1_matrice_completa.png'")
 
     num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(img_binaria, connectivity=8)
+    
 
     maschera_confini = np.zeros_like(img_binaria)
     caratteri_riconosciuti = []
 
     for i in range(1, num_labels):
         area = stats[i, cv2.CC_STAT_AREA]
+        print(f"Area label {i} = {area}")
 
         if area > AREA_CONFINE:
             maschera_confini[labels == i] = 255
@@ -77,7 +82,7 @@ def avvia_hub(image_path):
             label_predetta = modulo_ml.riconosci_carattere(crop)
             caratteri_riconosciuti.append({'centro': centro, 'label': label_predetta})
 
-            cv2.putText(img_color, label_predetta, (x, y - 20), cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 4)
+            cv2.putText(img_color, label_predetta, (x, y - 20), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 3)
 
     step2_visiva = cv2.resize(maschera_confini, (DIMENSIONE_FINALE, DIMENSIONE_FINALE), interpolation=cv2.INTER_NEAREST)
     cv2.imwrite("step2_solo_confini.png", cv2.bitwise_not(step2_visiva))
@@ -210,7 +215,7 @@ def disegna_percorso(immagine, matrice_3d, percorso, colore): # Funzione disegna
         py = y
 
 if __name__ == "__main__":
-    nome_foto = "mappe/mappa_test1.png"  # Controlla sempre che il nome combaci!
+    nome_foto = "mappe/mapp.png"  # Controlla sempre che il nome combaci!
 
     img_originale, immagine_matrice_colorata, mat_3d, c, w = avvia_hub(nome_foto) #c e w bool per verificare che ho trovato c e w
     
