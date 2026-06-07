@@ -23,7 +23,7 @@ def ottieni_matrice_binaria(image_path):
     img_gray = cv2.cvtColor(img_color, cv2.COLOR_BGR2GRAY)
 
     # Ispessimento della penna (assegna il valore minimo del kernel)
-    kernel_penna = np.ones((3, 3), np.uint8)    # Creazione matrice unitaria 3x3.
+    kernel_penna = np.ones((2, 2), np.uint8)    # Creazione matrice unitaria 2x2.
     img_gray = cv2.erode(img_gray, kernel_penna, iterations=1)
 
     # Applichiamo un blur per rimuovere il rumore (come i quadretti del foglio).
