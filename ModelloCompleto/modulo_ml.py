@@ -36,7 +36,7 @@ def riconosci_carattere(crop_binario):
 
     lettera_scalata = lettera_ritagliata.resize((nuovo_w, nuovo_h), Image.Resampling.LANCZOS)
     # Il filtro LANCZOS preserva i dettagli geometrici del tratto. A differenza del nearest neighbor o
-    # del Bilinear, questo filtro utilizza una formula basata sul sinc, e analizza una matrice 8x8 di
+    # del Bilinear, questo filtro utilizza una formula basata sul sinc, e analizza una matrice 9x9 di
     # pixel vicini per calcolare il valore del nuovo pixel. Utilizziamo questo filtro perché preserva
     # l'integrità geometrica dei caratteri. Riduce l'aliasing e mantiene la nitidezza dei bordi.
 
