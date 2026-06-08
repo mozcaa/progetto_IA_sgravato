@@ -215,7 +215,7 @@ def disegna_percorso(immagine, matrice_3d, percorso, colore): # Funzione disegna
         py = y
 
 if __name__ == "__main__":
-    nome_foto = "mappe/mapp.png"  # Controlla sempre che il nome combaci!
+    nome_foto = "mappe/Full/mappa_26.png"  # Controlla sempre che il nome combaci!
 
     img_originale, immagine_matrice_colorata, mat_3d, c, w = avvia_hub(nome_foto) #c e w bool per verificare che ho trovato c e w
     
