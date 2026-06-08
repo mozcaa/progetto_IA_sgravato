@@ -5,7 +5,7 @@ from aima import Problem, uniform_cost_search, astar_search, greedy_best_first_g
 
 class MappaProblem(Problem):
     def __init__(self, matrice_3d, costo_confine, costo_base, fattore_ostile, costo_volo):
-        # start e goal devono essere tuple (X, Y) già scalate.
+        # inizializzo variabili problema
         self.matrice = matrice_3d
         self.max_y = matrice_3d.shape[0]
         self.max_x = matrice_3d.shape[1]
@@ -34,7 +34,7 @@ class MappaProblem(Problem):
 
 
     def actions(self, state):
-        # Dato uno stato (X, Y), restituisce le mosse valide.
+        # Dato un pizel (x, y), restituisce le mosse valide.
         self.nodi_esplorati += 1 
 
         x, y = state
