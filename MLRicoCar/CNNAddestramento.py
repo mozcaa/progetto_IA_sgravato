@@ -8,7 +8,7 @@ import kagglehub
 from tensorflow import keras
 from tensorflow.keras import layers
 
-# Per rendere i risultati più riproducibili
+# Va a modificare i parametri iniziali
 np.random.seed(42)
 keras.utils.set_random_seed(42)
 
@@ -32,17 +32,19 @@ print("Path to dataset files:", dataset_path)
 # --- Funzioni di caricamento IDX (formato binario EMNIST) ---
 
 def load_idx_images(filepath):
-    """Carica immagini in formato IDX (con o senza gzip)."""
+    # Carica immagini in formato IDX (con o senza gzip).
     opener = gzip.open if str(filepath).endswith(".gz") else open
     with opener(filepath, "rb") as f:
         magic, num, rows, cols = struct.unpack(">IIII", f.read(16))
         data = np.frombuffer(f.read(), dtype=np.uint8)
-    # EMNIST richiede trasposizione per orientamento corretto
+    # EMNIST richiede trasposizione per orientamento corretto:
+    # Passa dal vettore piatto 1D a un insieme di immagini, le raddrizza e infine
+    # trasforma le singole immagini in vettori 1D liberi all'interno di una matrice.
     images = data.reshape(num, rows, cols).transpose(0, 2, 1).reshape(num, rows * cols)
     return images
 
 def load_idx_labels(filepath):
-    """Carica label in formato IDX (con o senza gzip)."""
+    # Carica label in formato IDX (con o senza gzip).
     opener = gzip.open if str(filepath).endswith(".gz") else open
     with opener(filepath, "rb") as f:
         magic, num = struct.unpack(">II", f.read(8))
@@ -50,7 +52,7 @@ def load_idx_labels(filepath):
     return data
 
 def load_mapping(filepath):
-    """Carica il mapping emnist_idx -> carattere dal file di testo."""
+    # Carica il mapping emnist_idx -> carattere dal file di testo (indice, carattere).
     mapping = {}
     with open(filepath, "r") as f:
         for line in f:
@@ -61,14 +63,14 @@ def load_mapping(filepath):
     return mapping
 
 def find_file(base_path, pattern):
-    """Cerca ricorsivamente un file per pattern glob."""
+    # Cerca ricorsivamente il file indicato tra quelli scaricati.
     matches = list(base_path.rglob(pattern))
     if not matches:
         raise FileNotFoundError(f"File non trovato con pattern: {pattern}")
     return matches[0]
 
 def filter_by_labels(X, y, mapping, target_labels):
-    """Filtra solo i campioni delle classi target e rimappa le label a 0..N-1."""
+    # Filtra solo i campioni delle classi target e rimappa le label a 0..N-1.
     mask = np.array([mapping.get(int(lbl), "") in target_labels for lbl in y])
     X_filtered = X[mask]
     y_filtered = np.array([label_to_index[mapping[int(lbl)]] for lbl in y[mask]])
@@ -101,19 +103,18 @@ print("Shape train prima del reshape CNN:", X_train.shape)
 X_train = X_train / 255.0
 X_test  = X_test  / 255.0
 
-# --- MODIFICA CNN: Reshape dei dati in formato 2D ---
+# --- MODIFICA CNN: Reshape dei dati in formato 4D ---
 X_train = X_train.reshape(-1, IMG_SIZE, IMG_SIZE, 1)
 X_test  = X_test.reshape(-1, IMG_SIZE, IMG_SIZE, 1)
 
 print("Shape train dopo reshape CNN:", X_train.shape)
 print("Shape test dopo reshape CNN:", X_test.shape)
 
-# --- MODIFICA CNN: Architettura del Modello ---
+# --- MODIFICA CNN: Architettura del modello ---
 model = keras.Sequential()
 model.add(layers.Input(shape=(IMG_SIZE, IMG_SIZE, 1)))
 
-
-# Blocchi Convoluzionali
+# Blocchi convoluzionali
 model.add(layers.Conv2D(32, kernel_size=(3, 3), activation="relu"))
 model.add(layers.MaxPooling2D(pool_size=(2, 2)))
 
@@ -122,6 +123,7 @@ model.add(layers.MaxPooling2D(pool_size=(2, 2)))
 
 # Classificazione finale
 model.add(layers.Flatten())
+
 # Layer intermedio per dare più capacità di "ragionamento" alla rete
 model.add(layers.Dense(128, activation="relu"))
 
@@ -156,7 +158,6 @@ history = model.fit(
     validation_split=0.1,
     callbacks=[early_stopping]
 )
-
 
 # Valutazione finale
 score = model.evaluate(X_test, y_test, verbose=False)
