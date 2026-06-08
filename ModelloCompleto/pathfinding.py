@@ -142,7 +142,7 @@ def esegui_ricerca(nome, algoritmo, problema, euristica=None):
 
     problema.nodi_esplorati = 0 # reset contatore nodi esplorati
 
-    print(f"\nAvvio Ricerca: {nome}")
+    print(f"\nAvvio ricerca: {nome}")
     start_time = time.time()
 
     if euristica: # se c'è l'euristica la passo sennò no
@@ -155,7 +155,7 @@ def esegui_ricerca(nome, algoritmo, problema, euristica=None):
     
     # Stampa dei risultati
     if nodo_finale:
-        print(f"Percorso {nome} trovato!")
+        print(f"Percorso {nome} trovato")
         print(f" -> Costo: {nodo_finale.path_cost}")
         print(f" -> Tempo: {tempo_impiegato:.2f} secondi")
         print(f" -> Nodi Esplorati: {nodi_esplorati:,}")

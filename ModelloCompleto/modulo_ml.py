@@ -8,7 +8,7 @@ TARGET_LABELS = ["A", "C", "G", "F", "W", "X", "1", "2", "3", "4", "5", "6", "7"
 print("[ML] Modello caricato con successo\n")
 
 def riconosci_carattere(crop_binario):
-    """Prende un array numpy (la lettera ritagliata dall'Hub) e la riconosce."""
+    # Prende un array numpy (la lettera ritagliata dall'Hub) e la riconosce.
     img_pulita = Image.fromarray(crop_binario)
 
     # Ritagliamo gli spazi vuoti attorno
