@@ -26,8 +26,8 @@ def ottieni_matrice_binaria(image_path):
     kernel_penna = np.ones((2, 2), np.uint8)    # Creazione matrice unitaria 2x2.
     img_gray = cv2.erode(img_gray, kernel_penna, iterations=1)
 
-    # Applichiamo un blur per rimuovere il rumore (come i quadretti del foglio).
-    # Calcola la media dei pixel in un'area
+    # Applichiamo un blur per rimuovere il rumore
+    # Calcola la mediana dei pixel in un'area
     img_sfocata = cv2.medianBlur(img_gray, MEDIAN_BLUR)
 
     # Trasforma l'immagine blurrata in binaria: utilizza la tecnica Adaptive Thresholding per stabilire
@@ -35,11 +35,11 @@ def ottieni_matrice_binaria(image_path):
     img_binaria = cv2.adaptiveThreshold(
         img_sfocata, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 31, ADAPTIVE_THRESH
     )
-    # Qui invertiamo anche i colori dell'immagine, avendo la penna come bianco e lo sfondo come nero, 
-    # impostando tutti i valori che sono sotto una certa soglia (ovvero nero) al valore massimo 255, e viceversa,
-    # perché la dilatazione (funzione successiva) lavora espandendo le zone con valori massimi (ovvero bianco).
+    # Qui invertiamo anche i colori dell'immagine, penna come bianco e lo sfondo nero, 
+    # impostando tutti i valori che sono sotto una certa soglia (ovvero nero) al valore massimo 255, e viceversa, la dilatazione dilata il bianco.
+  
 
-    # Dilatazione (morfologia) per unire i buchi: tramite una matrice 3x3 ingrandisce gli oggetti
+    # Dilatazione  per unire i buchi: tramite una matrice 3x3 ingrandisce gli oggetti
     # binari (in questo caso le tracce della penna), creando un'immagine più definita.
     kernel = np.ones((3,3), np.uint8)
     img_binaria = cv2.dilate(img_binaria, kernel, iterations=ITERAZIONI_DILATAZIONE)
