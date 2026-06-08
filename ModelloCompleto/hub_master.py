@@ -52,43 +52,53 @@ COLORI_PER_LABEL = { #sfumature di rosso
 def avvia_hub(image_path):
     print(f"\n--- AVVIO HUB CENTRALE ---")
 
+    # Estraiamo la matrice binaria pulita tramite il digitalizzatore
     img_color, img_binaria = modulo_digitalizzatore.ottieni_matrice_binaria(image_path)
-    
+
     alt, lar = img_binaria.shape
     print(f"Area img_binaria = {alt*lar}")
-
+    
+    # Salviamo un'immagine di debug per vedere come sta venendo la binarizzazione(ne reinvertiamo i colori con cv2.bitwise_not per rendere più chiara la lettura)
     step1_visiva = cv2.resize(img_binaria, (DIMENSIONE_FINALE, DIMENSIONE_FINALE), interpolation=cv2.INTER_NEAREST)
     cv2.imwrite("step1_matrice_completa.png", cv2.bitwise_not(step1_visiva))
     print("- Salvato 'step1_matrice_completa.png'")
 
+    # Troviamo tutti gli elementi connessi (i vari "blocchi" neri sull'immagine)
     num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(img_binaria, connectivity=8)
     
-
     maschera_confini = np.zeros_like(img_binaria)
     caratteri_riconosciuti = []
 
+    # Analizziamo ogni singolo blob trovato (partiamo da 1 perché lo 0 è lo sfondo)
     for i in range(1, num_labels):
         area = stats[i, cv2.CC_STAT_AREA]
         print(f"Area label {i} = {area}")
 
+        # Se è più grande della soglia AREA_CONFINE, è un muro/confine
         if area > AREA_CONFINE:
             maschera_confini[labels == i] = 255
 
+        # Se non è un muro ma è più grande della soglia AREA_RUMORE, è un carattere
         elif area > AREA_RUMORE:
+            # Estraiamo le coordinate del bounding box
             x, y, w, h = stats[i, cv2.CC_STAT_LEFT], stats[i, cv2.CC_STAT_TOP], stats[i, cv2.CC_STAT_WIDTH], stats[i, cv2.CC_STAT_HEIGHT]
+            # Ritagliamo esattamente la lettera
             crop = np.where(labels[y:y+h, x:x+w] == i, 255, 0).astype(np.uint8)
             centro = (int(centroids[i][0]), int(centroids[i][1]))
 
+            # Diamo in pasto il ritaglio al nostro modello ML per capire che lettera o numero è
             label_predetta = modulo_ml.riconosci_carattere(crop)
             caratteri_riconosciuti.append({'centro': centro, 'label': label_predetta})
 
+            # Stampiamo la label sull'immagine originale per feedback visivo
             cv2.putText(img_color, label_predetta, (x, y - 20), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 3)
 
+    # Salviamo il secondo step visivo: solo confini
     step2_visiva = cv2.resize(maschera_confini, (DIMENSIONE_FINALE, DIMENSIONE_FINALE), interpolation=cv2.INTER_NEAREST)
     cv2.imwrite("step2_solo_confini.png", cv2.bitwise_not(step2_visiva))
     print("- Salvato 'step2_solo_confini.png'")
 
-    # ***** NUOVA LOGICA DI DIVISIONE STATI *****
+    # ***** LOGICA DI DIVISIONE STATI *****
     #  Invertiamo i confini: i muri diventano neri (0), e gli spazi vuoti bianchi (255)
     aree_senza_confini = cv2.bitwise_not(maschera_confini)
 
@@ -100,6 +110,7 @@ def avvia_hub(image_path):
     id_territorio = 1
 
     # L'oceano (lo spazio esterno fuori dalla mappa) tocca sicuramente l'angolo (0,0)
+    # Lo identifichiamo per evitare di assegnargli valori a caso
     label_esterno = labels_aree[0, 0]
 
     for i in range(1, numero_aree):
@@ -107,6 +118,8 @@ def avvia_hub(image_path):
             continue # Saltiamo l'oceano
 
         label_territorio = "VUOTO"
+        # Cerchiamo di capire che tipo di territorio è questa pozza
+        # Controlliamo se una delle lettere lette prima ci casca dentro
         for char in caratteri_riconosciuti:
             cx, cy = char['centro']
             # Se il centro della lettera cade esattamente in questa "pozza" (stato i)
@@ -114,22 +127,23 @@ def avvia_hub(image_path):
                 label_territorio = char['label']
                 break
 
-        # Scriviamo i dati in memoria
+        # Scriviamo i dati in memoria, ovvero l'associazione: ID Pozza -> Lettera trovata
         matrice_id_territori[labels_aree == i] = id_territorio
         label_per_id_territorio[id_territorio] = label_territorio
         id_territorio += 1
 
-    # Ridimensionamento
+    # Adesso ridimensioniamo tutto alla risoluzione finale (es. 300x300) usando INTER_NEAREST, per non creare sfumature sporche sui bordi.
     confini_ridimensionati = cv2.resize(maschera_confini, (DIMENSIONE_FINALE, DIMENSIONE_FINALE), interpolation=cv2.INTER_NEAREST)
     territori_ridimensionati = cv2.resize(matrice_id_territori, (DIMENSIONE_FINALE, DIMENSIONE_FINALE), interpolation=cv2.INTER_NEAREST)
 
-    # Creazione della Matrice 3D Finale
+    # Costruiamo la matrice 3D che conterrà i dati per il pathfinding e l'immagine a colori finale
     matrice_3d = np.empty((DIMENSIONE_FINALE, DIMENSIONE_FINALE, 2), dtype=object)
     immagine_matrice_colorata = np.zeros((DIMENSIONE_FINALE, DIMENSIONE_FINALE, 3), dtype=np.uint8)
 
     for y in range(DIMENSIONE_FINALE):
         for x in range(DIMENSIONE_FINALE):
-            if confini_ridimensionati[y, x] > 127:
+            if confini_ridimensionati[y, x] > 127: # Se è nero (in realtà, più in generale, più tendente al nero che al bianco usando >127)
+                # Siamo su un confine
                 matrice_3d[y, x, 1] = "CONFINE"
                 immagine_matrice_colorata[y, x] = [0, 0, 0]
             else:
