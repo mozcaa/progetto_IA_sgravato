@@ -40,7 +40,7 @@ class MappaProblem(Problem):
         x, y = state
         mosse_valide = []
 
-        # --- LOGICA VOLI AEROPORTO ---
+        # *** VOLI AEROPORTO ***
         valore_corrente = str(self.matrice[y, x, 1])
         # Controllo se sono in un territorio F e se le mie coordinate (x,y) corrispondono a quelle del gate ufficiale di questo aeroporto.
         if valore_corrente.startswith("F") and (x, y) == self.aeroporti.get(valore_corrente):
@@ -49,7 +49,7 @@ class MappaProblem(Problem):
                 # Se il Gate di destinazione è di un aeroporto diverso da quello attuale
                 if id_destinazione != valore_corrente:
                     mosse_valide.append((nx, ny))
-        # -----------------------------------
+        # ***********************************
 
         direzioni = [
             (0, -1), # Nord
@@ -168,7 +168,7 @@ def esegui_ricerca(nome, algoritmo, problema, euristica=None):
     
     return percorso
 
-# --- FUNZIONE PRINCIPALE ---
+# *** FUNZIONE PRINCIPALE ***
 def esegui_confronto(matrice_3d):
     print("\nInizializzazione Problema AIMA...")
 
