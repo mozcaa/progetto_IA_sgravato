@@ -151,6 +151,7 @@ def avvia_hub(image_path):
                 if id_territorio_corrente > 0:
                     matrice_3d[y, x, 1] = label_per_id_territorio[id_territorio_corrente]
 
+                    # Gestione speciale per i punti di volo (F)
                     # Associo un identificativo ad ogni territorio F
                     if label_per_id_territorio[id_territorio_corrente] == "F":
                         matrice_3d[y, x, 1] += str(id_territorio_corrente)
@@ -159,12 +160,13 @@ def avvia_hub(image_path):
                     colore_scelto = COLORI_PER_LABEL[label_per_id_territorio[id_territorio_corrente]]
                     immagine_matrice_colorata[y, x] = colore_scelto
                 else:
+                    # Spazio vuoto/non riconosciuto
                     matrice_3d[y, x, 1] = "VUOTO"
                     immagine_matrice_colorata[y, x] = [255, 255, 255]
 
     # ***** SCALATURA E RICERCA START/GOAL/GATE *****
     
-    # Calcoliamo di quanto abbiamo ingrandito la mappa, quindi le scale che ci servono
+    # Siccome abbiamo fatto un resize dell'immagine, le coordinate in pixel dei caratteri, che avevamo trovato sballano. Dobbiamo scalarle proporzionalmente.
     altezza_originale, larghezza_originale = img_binaria.shape
     scala_x = DIMENSIONE_FINALE / larghezza_originale
     scala_y = DIMENSIONE_FINALE / altezza_originale
@@ -175,9 +177,10 @@ def avvia_hub(image_path):
     trovato_w = False   # variabile per verificare che trovo W
     # Scorriamo i caratteri trovati, cerchiamo C e W
     for char in caratteri_riconosciuti:
-        cx_orig, cy_orig = char['centro'] # salvo coordinate baricentro carattere
-        cx_scal = int(cx_orig * scala_x) # scalo coordinata x baricentro carattere
-        cy_scal = int(cy_orig * scala_y) # scalo coordinata y baricentro carattere
+        # Recuperiamo il baricentro originale e applichiamo la scala
+        cx_orig, cy_orig = char['centro'] 
+        cx_scal = int(cx_orig * scala_x) 
+        cy_scal = int(cy_orig * scala_y) 
 
         if matrice_3d[cy_scal, cx_scal, 1] != "CONFINE": # controllo per verificare che con la scalatura qualcosa sia finito sul confine (altamente improbabile, ma non impossibile)
             if char['label'] == 'C': 
@@ -196,6 +199,7 @@ def avvia_hub(image_path):
     if not trovato_c or not trovato_w:
         print("ATTENZIONE: Commence (C) o Win (W) non trovati!")
     
+    # Salviamo il risultato finale (immagine binarizzata, pulita e ricolorata)
     cv2.imwrite("step3_matrice_colorata.png", cv2.cvtColor(immagine_matrice_colorata, cv2.COLOR_RGB2BGR))
     print("- Salvato 'step3_matrice_colorata.png'")
     print("--- ELABORAZIONE COMPLETATA ---")
@@ -225,19 +229,22 @@ def disegna_percorso(immagine, matrice_3d, percorso, colore): # Funzione disegna
         elif (dist_x == 0 or dist_y == 0): # Opzione 3: scivolo su ghiaccio (linea dritta lunga)
             cv2.line(immagine, (x, y), (px, py), colore, 1)
 
-        px = x # salvo pixel attuali che diventeranno i precedenti sul giro di ciclo seguente
+        # Aggiorniamo le coordinate "precedenti" per il prossimo giro
+        px = x
         py = y
 
 if __name__ == "__main__":
-    nome_foto = "mappe/Full/mappa_26.png"  # Controlla sempre che il nome combaci!
+    nome_foto = "mappe/Full/mappa_26.png"  # Ricordarsi di cambiare questo path se si vuole testare un'altra immagine!
 
     img_originale, immagine_matrice_colorata, mat_3d, c, w = avvia_hub(nome_foto) #c e w bool per verificare che ho trovato c e w
     
     # ATTIVAZIONE PATHFINDING E RAPPRESENTAZIONE PERCORSO SU MAPPA
+    # creiamo delle copie della mappa pulita per disegnarci sopra i vari percorsi
     mappa_ucs= immagine_matrice_colorata.copy()
     mappa_astar= immagine_matrice_colorata.copy()
     mappa_greedy= immagine_matrice_colorata.copy()
 
+    # Se abbiamo i punti di inizio e fine, scateniamo gli algoritmi
     if c and w:
      
         print("Colori percorsi:")
@@ -248,7 +255,7 @@ if __name__ == "__main__":
         print("Greedy Manhattan = rosso")
         print("Greedy Euclideo = verde")
         print("Greedy OP = blu")
-        # Passiamo la matrice (contenente tutti i dati per il pathfinding) al file separato
+        # Deleghiamo la magia al modulo di pathfinding, passandogli la matrice 3D
         percorso_ucs, percorso_astar_manhattan, percorso_astar_euclideo, percorso_astar_op, percorso_greedy_manhattan, percorso_greedy_euclideo, percorso_greedy_op = pathfinding.esegui_confronto(mat_3d)
 
         
@@ -282,6 +289,7 @@ if __name__ == "__main__":
         if percorso_greedy_op:
             disegna_percorso(mappa_greedy, mat_3d, percorso_greedy_op, [0, 0, 255] )
                 
+    # infine, stampiamo tutto a video usando un subplot di Matplotlib
     fig, assi = plt.subplots(2, 2, figsize=(16, 10))
     assi[0,0].imshow(cv2.cvtColor(img_originale, cv2.COLOR_BGR2RGB))
     assi[0,0].set_title("1. Mappa Analizzata", fontsize=14)
