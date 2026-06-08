@@ -5,9 +5,7 @@ from aima import Problem, uniform_cost_search, astar_search, greedy_best_first_g
 
 class MappaProblem(Problem):
     def __init__(self, matrice_3d, costo_confine, costo_base, fattore_ostile, costo_volo):
-        """
-        start e goal devono essere tuple (X, Y) già scalate.
-        """
+        # start e goal devono essere tuple (X, Y) già scalate.
         self.matrice = matrice_3d
         self.max_y = matrice_3d.shape[0]
         self.max_x = matrice_3d.shape[1]
@@ -19,7 +17,7 @@ class MappaProblem(Problem):
 
         start = None
         goal = None
-        self.aeroporti = {}    # Creo dizionario dove salvare per ogni territorio F il suo "Gate"
+        self.aeroporti = {}    # Dizionario dove salvare, per ogni territorio F, il suo "Gate"
 
         # Ciclo per mappare il mondo (trova start, goal, gate)
         for y in range(self.max_y):
@@ -36,9 +34,7 @@ class MappaProblem(Problem):
 
 
     def actions(self, state):
-        """
-        Dato uno stato (X, Y), restituisce le mosse valide.
-        """
+        # Dato uno stato (X, Y), restituisce le mosse valide.
         self.nodi_esplorati += 1 
 
         x, y = state
@@ -56,37 +52,33 @@ class MappaProblem(Problem):
         # -----------------------------------
 
         direzioni = [
-             (0, -1), # Nord
-             (1, 0), # Est
-             (-1, 0), # Ovest
-             (0, 1) # Sud
-            ]
+            (0, -1), # Nord
+            (1, 0), # Est
+            (-1, 0), # Ovest
+            (0, 1) # Sud
+        ]
         
         for d in direzioni:
             ny = y + d[1]
             nx = x + d[0]
             if 0 <= nx < self.max_x and 0 <= ny < self.max_y:
-                 valore_pixel = self.matrice[ny, nx, 1]
-                 if valore_pixel != "X" and valore_pixel != "VUOTO" and valore_pixel != "G":
-                      mosse_valide.append((nx, ny))
-                 elif valore_pixel == "G":
-                      while valore_pixel == "G":
-                         ny += d[1]
-                         nx += d[0]
-                         valore_pixel = self.matrice[ny, nx, 1]
-                      mosse_valide.append((nx, ny))
+                valore_pixel = self.matrice[ny, nx, 1]
+                if valore_pixel != "X" and valore_pixel != "VUOTO" and valore_pixel != "G":
+                    mosse_valide.append((nx, ny))
+                elif valore_pixel == "G":
+                    while valore_pixel == "G":
+                        ny += d[1]
+                        nx += d[0]
+                        valore_pixel = self.matrice[ny, nx, 1]
+                    mosse_valide.append((nx, ny))
         return mosse_valide
 
     def result(self, state, action):
-        """
-        In una griglia, l'azione coincide direttamente con il nuovo stato.
-        """
+        # In una griglia, l'azione coincide direttamente con il nuovo stato.
         return action
 
     def path_cost(self, c, state1, action, state2):
-        """
-        Calcola il costo totale per arrivare da state1 a state2.
-        """
+        # Calcola il costo totale per arrivare da state1 a state2.
         x, y = state2 #coordinate nodo arrivo
         px, py = state1 #coordinate nodo partenza
 
@@ -113,26 +105,20 @@ class MappaProblem(Problem):
         return c + costo_aggiuntivo + costo_movimento
 
     def h1(self, node):
-        """
-        Euristica 1: distanza di Manhattan.
-        Usata da A* Manhattan e Greedy Manhattan.
-        """
+        # Euristica 1: distanza di Manhattan.
+        # Usata da A* Manhattan e Greedy Manhattan.
         x, y = node.state
         gx, gy = self.goal
 
         return (abs(x - gx) + abs(y - gy)) * self.costo_base
 
     def h2(self, node):
-        """
-        Euristica 2: distanza Euclidea.
-        Usata da A* Euclidea e Greedy Euclideo.
-        """
+        # Euristica 2: distanza Euclidea.
+        # Usata da A* Euclidea e Greedy Euclideo.
         return math.dist(node.state, self.goal) * self.costo_base
     
     def h3(self, node):
-        """
-        Euristica 3: Euristica OP (Manhattan personalizzata), mantiene ammissibilità anche con aeroporti
-        """
+        # Euristica 3: Euristica OP (Manhattan personalizzata), mantiene ammissibilità anche con aeroporti
         x, y = node.state
         gx, gy = self.goal
 
@@ -151,10 +137,8 @@ class MappaProblem(Problem):
         return min(costo_camminata, costo_volo)
 
 def esegui_ricerca(nome, algoritmo, problema, euristica=None):
-    """
-    Esegue un algoritmo di ricerca, fornisce i tempi, stampa i dati
-    e restituisce il percorso trovato.
-    """
+    # Esegue un algoritmo di ricerca, fornisce i tempi, stampa i dati
+    # e restituisce il percorso trovato.
 
     problema.nodi_esplorati = 0 # reset contatore nodi esplorati
 
@@ -162,9 +146,9 @@ def esegui_ricerca(nome, algoritmo, problema, euristica=None):
     start_time = time.time()
 
     if euristica: # se c'è l'euristica la passo sennò no
-         nodo_finale = algoritmo(problema, euristica)
+        nodo_finale = algoritmo(problema, euristica)
     else:
-         nodo_finale = algoritmo(problema)
+        nodo_finale = algoritmo(problema)
 
     tempo_impiegato = time.time() - start_time
     nodi_esplorati = problema.nodi_esplorati
@@ -187,7 +171,6 @@ def esegui_ricerca(nome, algoritmo, problema, euristica=None):
 # --- FUNZIONE PRINCIPALE ---
 def esegui_confronto(matrice_3d):
     print("\nInizializzazione Problema AIMA...")
-
 
     while True:
         try:

@@ -5,7 +5,7 @@ from tensorflow import keras
 print("[ML] Caricamento del modello in corso...")
 model = keras.models.load_model("ModelloCNN.keras")
 TARGET_LABELS = ["A", "C", "G", "F", "W", "X", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
-print("[ML] Modello caricato con successo!\n")
+print("[ML] Modello caricato con successo\n")
 
 def riconosci_carattere(crop_binario):
     """Prende un array numpy (la lettera ritagliata dall'Hub) e la riconosce."""

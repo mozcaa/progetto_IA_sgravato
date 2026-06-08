@@ -12,15 +12,15 @@ AREA_RUMORE = 300
 AREA_CONFINE = 9000
 
 COLORI_PER_LABEL = { #sfumature di rosso
-    "1": [255, 235, 235], # Rosa chiarissimo
+    "1": [255, 235, 235],   # Rosa chiarissimo
     "2": [255, 205, 205],
     "3": [255, 170, 170],
     "4": [255, 130, 130],
-    "5": [255, 85, 85],   # Rosso medio
+    "5": [255, 85, 85],     # Rosso medio
     "6": [230, 40, 40],
     "7": [190, 0, 0],
     "8": [140, 0, 0],
-    "9": [90, 0, 0],  # Bordeaux scurissimo
+    "9": [90, 0, 0],        # Bordeaux scurissimo
     "C": [0, 200, 0],       # Verde Scuro
     "W": [255, 215, 0],     # Oro/Giallo
     "X": [100, 100, 100],   # Grigio scuro
@@ -31,21 +31,21 @@ COLORI_PER_LABEL = { #sfumature di rosso
 }
 
 # COLORI_PER_LABEL = { #heatmap
-#     "1": [255, 255, 150], # Giallo chiaro
-#     "2": [255, 235, 100], # Giallo intenso
-#     "3": [255, 210, 50],  # Giallo-Arancio
-#     "4": [255, 170, 0],   # Arancione
-#     "5": [255, 120, 0],   # Arancione scuro
-#     "6": [255, 70, 0],    # Rosso-Arancio
-#     "7": [220, 20, 0],    # Rosso
-#     "8": [170, 0, 0],     # Rosso scuro
+#     "1": [255, 255, 150],     # Giallo chiaro
+#     "2": [255, 235, 100],     # Giallo intenso
+#     "3": [255, 210, 50],      # Giallo-Arancio
+#     "4": [255, 170, 0],       # Arancione
+#     "5": [255, 120, 0],       # Arancione scuro
+#     "6": [255, 70, 0],        # Rosso-Arancio
+#     "7": [220, 20, 0],        # Rosso
+#     "8": [170, 0, 0],         # Rosso scuro
 #     "9": [120, 0, 0],
-#     "C": [0, 255, 128],     # Verde Primavera
-#     "W": [30, 144, 255],    # Blu Dodger (Azzurro intenso)
-#     "X": [80, 80, 80],      # Antracite (Grigio quasi nero)
-#     "A": [176, 224, 230],   # Powder Blue (Azzurrino polvere)
-#     "G": [240, 255, 255],   # Bianco Ghiaccio
-#     "F": [255, 0, 255],     # Magenta puro:
+#     "C": [0, 255, 128],       # Verde Primavera
+#     "W": [30, 144, 255],      # Blu Dodger (Azzurro intenso)
+#     "X": [80, 80, 80],        # Antracite (Grigio quasi nero)
+#     "A": [176, 224, 230],     # Powder Blue (Azzurrino polvere)
+#     "G": [240, 255, 255],     # Bianco Ghiaccio
+#     "F": [255, 0, 255],       # Magenta puro:
 # }
 
 
@@ -246,7 +246,6 @@ if __name__ == "__main__":
 
     # Se abbiamo i punti di inizio e fine, scateniamo gli algoritmi
     if c and w:
-     
         print("Colori percorsi:")
         print("UCS = verde")
         print("A* Manhattan = rosso")
@@ -258,7 +257,6 @@ if __name__ == "__main__":
         # Deleghiamo la magia al modulo di pathfinding, passandogli la matrice 3D
         percorso_ucs, percorso_astar_manhattan, percorso_astar_euclideo, percorso_astar_op, percorso_greedy_manhattan, percorso_greedy_euclideo, percorso_greedy_op = pathfinding.esegui_confronto(mat_3d)
 
-        
         # DISEGNARE IL PERCORSO SULLA MAPPA
 
         # Se UCS ha trovato un percorso, coloriamo i pixel del percorso di blu sulla mappa finale
@@ -306,7 +304,6 @@ if __name__ == "__main__":
     assi[1,1].imshow(mappa_astar)
     assi[1,1].set_title(f"4. Mappa con A* con diverse euristiche ({DIMENSIONE_FINALE}x{DIMENSIONE_FINALE})", fontsize=14)
     assi[1,1].axis("off")
-
 
     plt.tight_layout()
     plt.show()

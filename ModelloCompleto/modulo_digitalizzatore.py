@@ -13,7 +13,7 @@ ITERAZIONI_DILATAZIONE = 1  # Il numero di iterazioni che il codice deve eseguir
                             # righe visibili, in modo da chiudere il maggior numero di buchi possibili
 
 def ottieni_matrice_binaria(image_path):
-    print(f"[Digitalizzatore] Elaborazione dell'immagine: {image_path}...")
+    print(f"[Dg] Elaborazione dell'immagine: {image_path}...")
 
     img_color = cv2.imread(image_path)
     if img_color is None:
