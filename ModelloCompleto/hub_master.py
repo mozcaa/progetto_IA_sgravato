@@ -247,7 +247,7 @@ if __name__ == "__main__":
     # Se abbiamo i punti di inizio e fine, scateniamo gli algoritmi
     if c and w:
         print("Colori percorsi:")
-        print("UCS = verde")
+        print("UCS = blu")
         print("A* Manhattan = rosso")
         print("A* Euclideo = verde")
         print("A* OP = blu")
