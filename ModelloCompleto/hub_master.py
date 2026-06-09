@@ -91,7 +91,7 @@ def avvia_hub(image_path):
             caratteri_riconosciuti.append({'centro': centro, 'label': label_predetta})
 
             # Stampiamo la label sull'immagine originale per feedback visivo
-            cv2.putText(img_color, label_predetta, (x, y - 20), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 3)
+            cv2.putText(img_color, label_predetta, (x, y - 20), cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 4)
 
     # Salviamo il secondo step visivo: solo confini
     step2_visiva = cv2.resize(maschera_confini, (DIMENSIONE_FINALE, DIMENSIONE_FINALE), interpolation=cv2.INTER_NEAREST)
@@ -234,7 +234,7 @@ def disegna_percorso(immagine, matrice_3d, percorso, colore): # Funzione disegna
         py = y
 
 if __name__ == "__main__":
-    nome_foto = "mappe/Full/mappa_foto3.jpg"  # Ricordarsi di cambiare questo path se si vuole testare un'altra immagine!
+    nome_foto = "mappe/Full/mappa_foto6.jpg"  # Ricordarsi di cambiare questo path se si vuole testare un'altra immagine!
 
     img_originale, immagine_matrice_colorata, mat_3d, c, w = avvia_hub(nome_foto) #c e w bool per verificare che ho trovato c e w
     
